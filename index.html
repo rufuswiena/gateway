@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>rufuswiena — Gateway Selector</title>
+<meta name="description" content="Find the fastest working Arweave gateway to reach rufuswiena's permanent, censorship-resistant website.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src https:;">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --red: #b33939;
+  --bg: #0b0b0b;
+  --panel: #111;
+  --panel-hover: #161616;
+  --border: #222;
+  --text: #ddd;
+  --dim: #777;
+  --ok: #2ecc71;
+  --fail: #e74c3c;
+  --wait: #f39c12;
+  --gold: #c8a960;
+  --radius: 10px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  line-height: 1.5;
+}
+h1 {
+  color: var(--red);
+  font-size: 2rem;
+  margin: 0 0 0.3rem;
+  letter-spacing: -0.5px;
+}
+.subtitle {
+  color: var(--dim);
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.legend {
+  display: flex;
+  gap: 1.2rem;
+  font-size: 0.82rem;
+  color: var(--dim);
+}
+.legend span::before {
+  content: '\25CF';
+  margin-right: 0.3rem;
+}
+.legend .l-ok::before { color: var(--ok); }
+.legend .l-fail::before { color: var(--fail); }
+.legend .l-wait::before { color: var(--wait); }
+.btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  padding: 0.35rem 0.9rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: all 0.2s;
+}
+.btn:hover { color: var(--text); border-color: #444; }
+.btn:active { transform: scale(0.97); }
+
+/* Gateway cards */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  transition: border-color 0.3s, opacity 0.3s, transform 0.3s;
+}
+.card:hover { background: var(--panel-hover); }
+.card.online { border-color: var(--ok); }
+.card.offline { border-color: var(--fail); opacity: 0.55; }
+.card.checking { border-color: var(--wait); }
+.card.fastest { border-color: var(--gold); box-shadow: 0 0 12px rgba(200,169,96,0.15); }
+.card-rank {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--dim);
+  min-width: 1.8rem;
+  text-align: center;
+}
+.card.fastest .card-rank { color: var(--gold); }
+.card-info { flex: 1; min-width: 0; }
+.card-name {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 0.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.badge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-primary { background: var(--red); color: #fff; }
+.badge-fastest { background: var(--gold); color: #000; }
+.card-url {
+  color: var(--dim);
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+.card-tag {
+  font-size: 0.72rem;
+  color: #555;
+  margin-top: 0.15rem;
+}
+.card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 80px;
+}
+.status {
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+}
+.status.ok { color: var(--ok); }
+.status.fail { color: var(--fail); }
+.status.wait { color: var(--wait); }
+a.go-btn {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+a.go-btn:hover { opacity: 0.85; }
+a.go-btn.disabled {
+  background: #222;
+  color: #555;
+  pointer-events: none;
+}
+
+/* Auto-redirect banner */
+.redirect-box {
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  margin-top: 1.2rem;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  display: none;
+}
+.redirect-box.active { display: block; }
+.redirect-box .countdown {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin: 0.5rem 0;
+}
+.redirect-box .cancel-btn {
+  background: transparent;
+  border: 1px solid var(--fail);
+  color: var(--fail);
+  padding: 0.3rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  transition: all 0.2s;
+}
+.redirect-box .cancel-btn:hover {
+  background: var(--fail);
+  color: #fff;
+}
+.redirect-box a { color: var(--gold); }
+
+/* Status message */
+.auto-msg {
+  color: var(--dim);
+  font-style: italic;
+  margin-top: 1.2rem;
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Progress bar */
+.progress-wrap {
+  width: 100%;
+  max-width: 600px;
+  height: 3px;
+  background: var(--panel);
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--gold);
+  width: 0%;
+  transition: width 0.3s;
+}
+
+.footer {
+  margin-top: 2rem;
+  color: #444;
+  font-size: 0.78rem;
+  text-align: center;
+  line-height: 1.6;
+}
+.footer a { color: #555; text-decoration: none; }
+.footer a:hover { color: var(--dim); }
+
+/* Mobile */
+@media (max-width: 480px) {
+  body { padding: 1.2rem 0.75rem; }
+  h1 { font-size: 1.6rem; }
+  .card {
+    flex-direction: column;
+    text-align: center;
+    padding: 0.9rem;
+  }
+  .card-rank { display: none; }
+  .card-right { flex-direction: row; gap: 0.8rem; min-width: auto; }
+}
+
+/* Sort animation */
+.card.moving { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>🔗 Gateway Selector</h1>
+<p class="subtitle">Find the fastest route to <strong>rufuswiena</strong> on the permanent web</p>
+
+<div class="toolbar">
+  <div class="legend">
+    <span class="l-ok">Online</span>
+    <span class="l-wait">Testing</span>
+    <span class="l-fail">Offline</span>
+  </div>
+  <button class="btn" id="retestBtn" onclick="runTests()" title="Re-test all gateways">↻ Retest</button>
+</div>
+
+<div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+
+<div id="gateways" role="list" aria-label="Arweave gateways"></div>
+
+<div class="redirect-box" id="redirectBox">
+  <div>Redirecting to the fastest gateway&hellip;</div>
+  <div class="countdown" id="countdown"></div>
+  <div id="redirectTarget"></div>
+  <button class="cancel-btn" id="cancelBtn" onclick="cancelRedirect()">✖ Cancel — stay here</button>
+</div>
+
+<p class="auto-msg" id="autoMsg">⏳ Testing gateways…</p>
+
+<div class="footer">
+  Permanent website stored on <a href="https://arweave.org" target="_blank" rel="noopener noreferrer">Arweave</a>
+  &middot; Resolved via <a href="https://ar.io" target="_blank" rel="noopener noreferrer">ar.io</a><br>
+  Source on <a href="https://github.com/rufuswiena/gateway" target="_blank" rel="noopener noreferrer">GitHub</a>
+  &middot; Web2 fallback via <a href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer">rufuswiena.com</a>
+</div>
+
+<script>
+/* ── Gateway Configuration ────────────────────────────── */
+const GATEWAYS = [
+  {
+    name: 'rufuswiena.ar.io',
+    url:  'https://rufuswiena.ar.io',
+    tag:  'ArNS Primary \u2014 custom undername',
+    primary: true
+  },
+  {
+    name: 'rufuswiena.arweave.net',
+    url:  'https://rufuswiena.arweave.net',
+    tag:  'Arweave.net fallback \u2014 works without TX ID'
+  },
+  {
+    name: 'rufuswiena.ar-io.dev',
+    url:  'https://rufuswiena.ar-io.dev',
+    tag:  'ar.io development gateway'
+  },
+  {
+    name: 'rufuswiena.g8way.io',
+    url:  'https://rufuswiena.g8way.io',
+    tag:  'Community gateway'
+  },
+  {
+    name: 'rufuswiena.arweave.dev',
+    url:  'https://rufuswiena.arweave.dev',
+    tag:  'Developer gateway'
+  }
+];
+
+const TIMEOUT_MS   = 8000;
+const REDIRECT_SEC = 10;
+
+/* ── State ────────────────────────────────────────────── */
+let results     = [];   // { gw, ms, online, index }
+let tested      = 0;
+let fastestGw   = null;
+let redirectId  = null; // interval id
+
+const container   = document.getElementById('gateways');
+const autoMsg     = document.getElementById('autoMsg');
+const progress    = document.getElementById('progress');
+const redirectBox = document.getElementById('redirectBox');
+const countdown   = document.getElementById('countdown');
+const redirectTgt = document.getElementById('redirectTarget');
+const retestBtn   = document.getElementById('retestBtn');
+
+/* ── Render Cards ─────────────────────────────────────── */
+function renderCards() {
+  container.innerHTML = '';
+  GATEWAYS.forEach((gw, i) => {
+    const card = document.createElement('div');
+    card.className = 'card checking';
+    card.id = 'gw-' + i;
+    card.setAttribute('role', 'listitem');
+    card.innerHTML =
+      '<div class="card-rank" id="rank-' + i + '">' + (i + 1) + '</div>' +
+      '<div class="card-info">' +
+        '<div class="card-name">' +
+          (gw.primary ? '<span class="badge badge-primary">primary</span> ' : '') +
+          '<span id="nameBadge-' + i + '"></span>' +
+          escapeHtml(gw.name) +
+        '</div>' +
+        '<div class="card-url">' + escapeHtml(gw.url) + '</div>' +
+        '<div class="card-tag">' + escapeHtml(gw.tag) + '</div>' +
+      '</div>' +
+      '<div class="card-right">' +
+        '<div class="status wait" id="status-' + i + '">testing\u2026</div>' +
+        '<a class="go-btn disabled" id="btn-' + i + '" href="' + escapeAttr(gw.url) + '" target="_blank" rel="noopener noreferrer">Visit</a>' +
+      '</div>';
+    container.appendChild(card);
+  });
+}
+
+function escapeHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escapeAttr(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+}
+
+/* ── Gateway Testing ──────────────────────────────────── */
+async function testGateway(gw, i) {
+  var card   = document.getElementById('gw-' + i);
+  var status = document.getElementById('status-' + i);
+  var btn    = document.getElementById('btn-' + i);
+  var start  = performance.now();
+
+  try {
+    var controller = new AbortController();
+    var tm = setTimeout(function() { controller.abort(); }, TIMEOUT_MS);
+
+    await fetch(gw.url, {
+      method: 'HEAD',
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: controller.signal
+    });
+
+    clearTimeout(tm);
+    var ms = Math.round(performance.now() - start);
+
+    card.className = 'card online';
+    status.className = 'status ok';
+    status.textContent = ms + ' ms';
+    btn.className = 'go-btn';
+
+    results.push({ gw: gw, ms: ms, online: true, index: i });
+
+    /* First online = fastest (parallel race) */
+    if (!fastestGw) {
+      fastestGw = gw;
+      document.getElementById('nameBadge-' + i).innerHTML =
+        '<span class="badge badge-fastest">fastest</span> ';
+      card.classList.add('fastest');
+    }
+  } catch (e) {
+    card.className = 'card offline';
+    status.className = 'status fail';
+    status.textContent = e.name === 'AbortError' ? 'timeout' : 'offline';
+    btn.className = 'go-btn disabled';
+    results.push({ gw: gw, ms: Infinity, online: false, index: i });
+  }
+
+  tested++;
+  progress.style.width = Math.round((tested / GATEWAYS.length) * 100) + '%';
+}
+
+/* ── Sort Cards by Speed ──────────────────────────────── */
+function sortCards() {
+  results.sort(function(a, b) {
+    if (a.online !== b.online) return a.online ? -1 : 1;
+    return a.ms - b.ms;
+  });
+
+  results.forEach(function(r, pos) {
+    var card = document.getElementById('gw-' + r.index);
+    var rank = document.getElementById('rank-' + r.index);
+    card.style.order = pos;
+    rank.textContent = pos + 1;
+  });
+}
+
+/* ── Auto-Redirect Countdown ──────────────────────────── */
+function startRedirect(gw) {
+  var sec = REDIRECT_SEC;
+  redirectBox.classList.add('active');
+  redirectTgt.innerHTML = '<a href="' + escapeAttr(gw.url) + '">' + escapeHtml(gw.name) + '</a>';
+  countdown.textContent = sec;
+
+  redirectId = setInterval(function() {
+    sec--;
+    countdown.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(redirectId);
+      window.location.href = gw.url;
+    }
+  }, 1000);
+}
+
+function cancelRedirect() {
+  if (redirectId) clearInterval(redirectId);
+  redirectBox.classList.remove('active');
+  autoMsg.innerHTML = '\u2714\uFE0F Redirect cancelled \u2014 pick a gateway manually above.';
+}
+
+/* ── Run All Tests ────────────────────────────────────── */
+function runTests() {
+  /* Reset state */
+  results    = [];
+  tested     = 0;
+  fastestGw  = null;
+  if (redirectId) clearInterval(redirectId);
+  redirectBox.classList.remove('active');
+  progress.style.width = '0%';
+  autoMsg.innerHTML = '\u23F3 Testing gateways\u2026';
+  retestBtn.disabled = true;
+
+  renderCards();
+
+  Promise.all(GATEWAYS.map(function(gw, i) {
+    return testGateway(gw, i);
+  })).then(function() {
+    retestBtn.disabled = false;
+    sortCards();
+
+    var onlineCount = results.filter(function(r) { return r.online; }).length;
+
+    if (fastestGw) {
+      autoMsg.innerHTML =
+        '\u2705 <strong>' + onlineCount + '/' + GATEWAYS.length + '</strong> gateways online \u2014 fastest: <a href="' +
+        escapeAttr(fastestGw.url) + '" style="color:var(--gold);font-weight:bold;">' +
+        escapeHtml(fastestGw.name) + '</a>';
+      startRedirect(fastestGw);
+    } else {
+      autoMsg.innerHTML =
+        '\u274C No gateways responded. Try again later or visit ' +
+        '<a href="https://www.rufuswiena.com" style="color:var(--red);">rufuswiena.com</a> directly.';
+    }
+  });
+}
+
+/* ── Init ─────────────────────────────────────────────── */
+runTests();
+</script>
+
+</body>
+</html>
