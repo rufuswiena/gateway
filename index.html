@@ -4,162 +4,139 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>rufuswiena — Gateway Selector</title>
-<meta name="description" content="Find the fastest working Arweave gateway to reach rufuswiena's permanent, censorship-resistant website.">
+<meta name="description" content="Smart auto-discovery of the fastest Arweave gateway to reach rufuswiena's permanent website. Scans top gateways from 670+ ar.io network nodes.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src https:;">
-<meta name="robots" content="index,follow">
 <link rel="icon" href="data:,">
 <style>
 :root {
   --red: #b33939;
   --bg: #0b0b0b;
   --panel: #111;
-  --panel-hover: #161616;
   --border: #222;
   --text: #ddd;
   --dim: #777;
   --ok: #2ecc71;
+  --gold: #f1c40f;
   --fail: #e74c3c;
-  --wait: #f39c12;
-  --gold: #c8a960;
-  --radius: 10px;
 }
-*,*::before,*::after{box-sizing:border-box}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
   padding: 2rem 1rem;
-  line-height: 1.5;
 }
-h1 {
-  color: var(--red);
-  font-size: 2rem;
-  margin: 0 0 0.3rem;
-  letter-spacing: -0.5px;
-}
+h1 { color: var(--red); font-size: 2rem; margin-bottom: 0.3rem; }
 .subtitle {
   color: var(--dim);
-  margin: 0 0 1.5rem;
+  margin-bottom: 1.5rem;
   text-align: center;
   font-size: 0.95rem;
 }
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.legend {
-  display: flex;
-  gap: 1.2rem;
-  font-size: 0.82rem;
-  color: var(--dim);
-}
-.legend span::before {
-  content: '\25CF';
-  margin-right: 0.3rem;
-}
-.legend .l-ok::before { color: var(--ok); }
-.legend .l-fail::before { color: var(--fail); }
-.legend .l-wait::before { color: var(--wait); }
-.btn {
+
+/* ── Status Banner ── */
+.status-banner {
   background: var(--panel);
   border: 1px solid var(--border);
-  color: var(--dim);
-  padding: 0.35rem 0.9rem;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  transition: all 0.2s;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 620px;
+  text-align: center;
 }
-.btn:hover { color: var(--text); border-color: #444; }
-.btn:active { transform: scale(0.97); }
+.status-text { font-size: 0.92rem; margin-bottom: 0.6rem; line-height: 1.5; }
+.progress-bar {
+  height: 4px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--ok);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.scanning .status-text { animation: pulse 1.5s infinite; }
 
-/* Gateway cards */
+/* ── Gateway Cards ── */
+#results { width: 100%; max-width: 620px; }
 .card {
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--ok);
+  border-radius: 10px;
   padding: 1rem 1.2rem;
-  margin-bottom: 0.75rem;
-  width: 100%;
-  max-width: 600px;
+  margin-bottom: 0.7rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.8rem;
-  transition: border-color 0.3s, opacity 0.3s, transform 0.3s;
+  animation: slideIn 0.35s ease forwards;
+  opacity: 0;
 }
-.card:hover { background: var(--panel-hover); }
-.card.online { border-color: var(--ok); }
-.card.offline { border-color: var(--fail); opacity: 0.55; }
-.card.checking { border-color: var(--wait); }
-.card.fastest { border-color: var(--gold); box-shadow: 0 0 12px rgba(200,169,96,0.15); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card.fastest {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(241,196,15,0.12);
+}
 .card-rank {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: bold;
   color: var(--dim);
-  min-width: 1.8rem;
+  min-width: 34px;
   text-align: center;
 }
 .card.fastest .card-rank { color: var(--gold); }
 .card-info { flex: 1; min-width: 0; }
 .card-name {
   font-weight: bold;
-  font-size: 1.05rem;
-  margin-bottom: 0.15rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.badge {
-  font-size: 0.65rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.badge-primary { background: var(--red); color: #fff; }
-.badge-fastest { background: var(--gold); color: #000; }
 .card-url {
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   word-break: break-all;
+  margin-top: 0.1rem;
 }
-.card-tag {
-  font-size: 0.72rem;
-  color: #555;
-  margin-top: 0.15rem;
+.card-badges { margin-top: 0.25rem; }
+.badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 3px;
+  margin-right: 0.3rem;
 }
-.card-right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 80px;
-}
-.status {
+.badge-fastest { background: var(--gold); color: #000; font-weight: bold; }
+.badge-priority { background: #1a1a2e; color: var(--dim); border: 1px solid #333; }
+.card-speed {
   font-size: 0.85rem;
   font-weight: bold;
-  text-align: center;
+  color: var(--ok);
+  white-space: nowrap;
+  min-width: 55px;
+  text-align: right;
 }
-.status.ok { color: var(--ok); }
-.status.fail { color: var(--fail); }
-.status.wait { color: var(--wait); }
 a.go-btn {
   display: inline-block;
   background: var(--red);
   color: #fff;
-  padding: 0.4rem 1rem;
-  border-radius: 4px;
+  padding: 0.45rem 1rem;
+  border-radius: 5px;
   text-decoration: none;
   font-weight: bold;
   font-size: 0.82rem;
@@ -167,339 +144,402 @@ a.go-btn {
   transition: opacity 0.2s;
 }
 a.go-btn:hover { opacity: 0.85; }
-a.go-btn.disabled {
-  background: #222;
-  color: #555;
-  pointer-events: none;
-}
 
-/* Auto-redirect banner */
-.redirect-box {
+/* ── Redirect Bar ── */
+.redirect-bar {
   background: var(--panel);
   border: 1px solid var(--gold);
-  border-radius: var(--radius);
-  padding: 1rem 1.5rem;
-  margin-top: 1.2rem;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  margin-top: 0.8rem;
   width: 100%;
-  max-width: 600px;
-  text-align: center;
+  max-width: 620px;
   display: none;
+  text-align: center;
+  font-size: 0.9rem;
 }
-.redirect-box.active { display: block; }
-.redirect-box .countdown {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: var(--gold);
-  margin: 0.5rem 0;
-}
-.redirect-box .cancel-btn {
-  background: transparent;
-  border: 1px solid var(--fail);
-  color: var(--fail);
-  padding: 0.3rem 1rem;
+.redirect-bar .cd { color: var(--gold); font-weight: bold; }
+.redirect-bar button {
+  background: #222;
+  color: var(--text);
+  border: 1px solid #444;
+  padding: 0.3rem 0.9rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  transition: all 0.2s;
+  margin-left: 0.5rem;
+  font-size: 0.82rem;
 }
-.redirect-box .cancel-btn:hover {
-  background: var(--fail);
-  color: #fff;
-}
-.redirect-box a { color: var(--gold); }
-
-/* Status message */
-.auto-msg {
-  color: var(--dim);
-  font-style: italic;
-  margin-top: 1.2rem;
-  font-size: 0.9rem;
-  text-align: center;
-  max-width: 600px;
-}
-
-/* Progress bar */
-.progress-wrap {
-  width: 100%;
-  max-width: 600px;
+.redirect-bar button:hover { background: #333; }
+.redir-prog {
   height: 3px;
-  background: var(--panel);
+  background: #222;
   border-radius: 2px;
-  margin-bottom: 1rem;
+  margin-top: 0.6rem;
   overflow: hidden;
 }
-.progress-bar {
+.redir-prog-fill {
   height: 100%;
   background: var(--gold);
-  width: 0%;
-  transition: width 0.3s;
+  border-radius: 2px;
+  width: 100%;
 }
 
+/* ── Retest button (inline) ── */
+.retest-btn {
+  background: none;
+  border: 1px solid var(--dim);
+  color: var(--dim);
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: all 0.2s;
+  vertical-align: middle;
+}
+.retest-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ── Empty / fallback ── */
+.empty-state {
+  text-align: center;
+  color: var(--dim);
+  padding: 2rem 1rem;
+  display: none;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+.empty-state a { color: var(--red); }
+
+/* ── Footer ── */
 .footer {
   margin-top: 2rem;
   color: #444;
   font-size: 0.78rem;
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.7;
 }
-.footer a { color: #555; text-decoration: none; }
-.footer a:hover { color: var(--dim); }
+.footer a { color: #555; }
 
-/* Mobile */
-@media (max-width: 480px) {
-  body { padding: 1.2rem 0.75rem; }
-  h1 { font-size: 1.6rem; }
-  .card {
-    flex-direction: column;
-    text-align: center;
-    padding: 0.9rem;
-  }
-  .card-rank { display: none; }
-  .card-right { flex-direction: row; gap: 0.8rem; min-width: auto; }
+/* ── Mobile ── */
+@media (max-width: 520px) {
+  body { padding: 1.5rem 0.7rem; }
+  h1 { font-size: 1.5rem; }
+  .card { flex-wrap: wrap; gap: 0.5rem; padding: 0.8rem; }
+  .card-rank { min-width: 28px; font-size: 1.1rem; }
+  .card-speed { min-width: auto; }
+  a.go-btn { width: 100%; text-align: center; margin-top: 0.3rem; }
 }
-
-/* Sort animation */
-.card.moving { transform: translateY(0); }
 </style>
 </head>
 <body>
 
 <h1>🔗 Gateway Selector</h1>
-<p class="subtitle">Find the fastest route to <strong>rufuswiena</strong> on the permanent web</p>
+<p class="subtitle">Smart discovery — scanning top gateways from <strong>670+</strong> ar.io nodes</p>
 
-<div class="toolbar">
-  <div class="legend">
-    <span class="l-ok">Online</span>
-    <span class="l-wait">Testing</span>
-    <span class="l-fail">Offline</span>
-  </div>
-  <button class="btn" id="retestBtn" onclick="runTests()" title="Re-test all gateways">↻ Retest</button>
+<div class="status-banner scanning" id="statusBanner" aria-live="polite">
+  <div class="status-text" id="statusText">🔍 Discovering best gateways…</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 </div>
 
-<div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+<div id="results" role="list" aria-label="Working gateways"></div>
 
-<div id="gateways" role="list" aria-label="Arweave gateways"></div>
-
-<div class="redirect-box" id="redirectBox">
-  <div>Redirecting to the fastest gateway&hellip;</div>
-  <div class="countdown" id="countdown"></div>
-  <div id="redirectTarget"></div>
-  <button class="cancel-btn" id="cancelBtn" onclick="cancelRedirect()">✖ Cancel — stay here</button>
+<div class="redirect-bar" id="redirectBar" aria-live="assertive">
+  <span id="redirectText"></span>
+  <button onclick="cancelRedirect()" aria-label="Cancel redirect">✕ Cancel</button>
+  <div class="redir-prog"><div class="redir-prog-fill" id="redirProg"></div></div>
 </div>
 
-<p class="auto-msg" id="autoMsg">⏳ Testing gateways…</p>
+<div class="empty-state" id="emptyState">
+  ❌ No gateways responded.<br>
+  Try again or visit <a href="https://www.rufuswiena.com" rel="noopener noreferrer">rufuswiena.com</a> directly.<br>
+  <button class="retest-btn" onclick="startScan()" style="margin-top:0.8rem">🔄 Retry</button>
+</div>
+
+<noscript>
+  <p style="text-align:center;margin-top:2rem;color:#999">
+    JavaScript is required. Or visit
+    <a href="https://rufuswiena.ar.io" style="color:var(--red)">rufuswiena.ar.io</a> directly.
+  </p>
+</noscript>
 
 <div class="footer">
-  Permanent website stored on <a href="https://arweave.org" target="_blank" rel="noopener noreferrer">Arweave</a>
-  &middot; Resolved via <a href="https://ar.io" target="_blank" rel="noopener noreferrer">ar.io</a>
-  &middot; <a href="https://gateways.ar.io/#/gateways" target="_blank" rel="noopener noreferrer">Browse all gateways</a><br>
-  Source on <a href="https://github.com/rufuswiena/gateway" target="_blank" rel="noopener noreferrer">GitHub</a>
-  &middot; Web2 fallback via <a href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer">rufuswiena.com</a>
+  Permanent website on <a href="https://arweave.org" target="_blank" rel="noopener noreferrer">Arweave</a> ·
+  Gateways via the <a href="https://ar.io" target="_blank" rel="noopener noreferrer">ar.io</a> network<br>
+  Web2 fallback: <a href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer">rufuswiena.com</a>
 </div>
 
 <script>
-/* ── Gateway Configuration ────────────────────────────── */
-const GATEWAYS = [
-  {
-    name: 'rufuswiena.ar.io',
-    url:  'https://rufuswiena.ar.io',
-    tag:  'ArNS Primary \u2014 custom undername',
-    primary: true
-  },
-  {
-    name: 'rufuswiena.arweave.net',
-    url:  'https://rufuswiena.arweave.net',
-    tag:  'Arweave.net fallback \u2014 works without TX ID'
-  },
-  {
-    name: 'rufuswiena.g8way.io',
-    url:  'https://rufuswiena.g8way.io',
-    tag:  'Community gateway'
-  },
-  {
-    name: 'rufuswiena.arweave.dev',
-    url:  'https://rufuswiena.arweave.dev',
-    tag:  'Developer gateway'
-  }
+/* =================================================================
+   CONFIGURATION
+   ================================================================= */
+var ARNS   = 'rufuswiena';
+var WANT   = 5;           // target number of working gateways
+var WAVE   = 10;          // gateways tested per wave (in parallel)
+var TIMO   = 6000;        // per-gateway timeout in ms
+var C_KEY  = 'rw-gw-v3';  // localStorage cache key
+var C_TTL  = 600000;      // cache lifetime: 10 minutes
+var RD_SEC = 10;          // auto-redirect countdown seconds
+
+/* ── Priority gateways — verified ArNS-compatible & tested working 2026-04-25 ──
+   Only gateways confirmed to resolve rufuswiena.{gateway} successfully. */
+var PRIORITY = ['ar.io', 'arweave.net', 'ardrive.net'];
+
+/* ── Top 30 gateways by operator stake weight ──
+   Source: ar.io network via ARIO SDK — updated 2026-04-25
+   Total network: ~670 gateways. We only need the top tier. */
+var BY_STAKE = [
+  'ar.randao.net','frostor.xyz','ariospeedwagon.com',
+  'exnihilio.dnshome.de','ario-gateway.nethermind.dev',
+  'nodeario.xyz','vilenarios.com','ar.perplex.finance',
+  'arweave.developerdao.com','umutdogan.space','khang.pro',
+  'oshvank.site','ar.tinnguyen.xyz','permagate.io','arns-gateway.com',
+  'codehodl.xyz','tekin86.site',
+  'derad.network','arweave.ar','campnodesa.xyz','zerolighta.xyz',
+  'regareta.xyz','practicersa.xyz','daemongate.io','ar.anyone.tech',
+  'boramir.xyz','zigza.xyz'
 ];
 
-const TIMEOUT_MS   = 8000;
-const REDIRECT_SEC = 10;
+/* ── Exclusion list — known to NOT resolve ArNS undernames ── */
+var EXCLUDE = { 'ar-io.dev': 1, 'g8way.io': 1, 'arweave.dev': 1, 'openar.dev': 1, 'ario.oceanprotocol.com': 1 };
 
-/* ── State ────────────────────────────────────────────── */
-let results     = [];   // { gw, ms, online, index }
-let tested      = 0;
-let fastestGw   = null;
-let redirectId  = null; // interval id
+/* =================================================================
+   STATE
+   ================================================================= */
+var results      = [];
+var scanning     = false;
+var rdTimer      = null;
+var rdCount      = RD_SEC;
+var totalTested  = 0;
 
-const container   = document.getElementById('gateways');
-const autoMsg     = document.getElementById('autoMsg');
-const progress    = document.getElementById('progress');
-const redirectBox = document.getElementById('redirectBox');
-const countdown   = document.getElementById('countdown');
-const redirectTgt = document.getElementById('redirectTarget');
-const retestBtn   = document.getElementById('retestBtn');
+/* =================================================================
+   DOM REFS
+   ================================================================= */
+var $ban   = document.getElementById('statusBanner');
+var $txt   = document.getElementById('statusText');
+var $prog  = document.getElementById('progressFill');
+var $res   = document.getElementById('results');
+var $rBar  = document.getElementById('redirectBar');
+var $rTxt  = document.getElementById('redirectText');
+var $rProg = document.getElementById('redirProg');
+var $empty = document.getElementById('emptyState');
 
-/* ── Render Cards ─────────────────────────────────────── */
-function renderCards() {
-  container.innerHTML = '';
-  GATEWAYS.forEach((gw, i) => {
-    const card = document.createElement('div');
-    card.className = 'card checking';
-    card.id = 'gw-' + i;
-    card.setAttribute('role', 'listitem');
-    card.innerHTML =
-      '<div class="card-rank" id="rank-' + i + '">' + (i + 1) + '</div>' +
-      '<div class="card-info">' +
-        '<div class="card-name">' +
-          (gw.primary ? '<span class="badge badge-primary">primary</span> ' : '') +
-          '<span id="nameBadge-' + i + '"></span>' +
-          escapeHtml(gw.name) +
-        '</div>' +
-        '<div class="card-url">' + escapeHtml(gw.url) + '</div>' +
-        '<div class="card-tag">' + escapeHtml(gw.tag) + '</div>' +
-      '</div>' +
-      '<div class="card-right">' +
-        '<div class="status wait" id="status-' + i + '">testing\u2026</div>' +
-        '<a class="go-btn disabled" id="btn-' + i + '" href="' + escapeAttr(gw.url) + '" target="_blank" rel="noopener noreferrer">Visit</a>' +
-      '</div>';
-    container.appendChild(card);
-  });
-}
-
-function escapeHtml(s) {
+/* =================================================================
+   XSS SAFETY
+   ================================================================= */
+function esc(s) {
   var d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
 }
-function escapeAttr(s) {
-  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+
+/* =================================================================
+   CACHE  (localStorage, 10 min TTL)
+   ================================================================= */
+function cacheLoad() {
+  try {
+    var raw = localStorage.getItem(C_KEY);
+    if (!raw) return null;
+    var d = JSON.parse(raw);
+    if (Date.now() - d.ts > C_TTL) { localStorage.removeItem(C_KEY); return null; }
+    return d.r;
+  } catch(e) { return null; }
+}
+function cacheSave(r) {
+  try { localStorage.setItem(C_KEY, JSON.stringify({ ts: Date.now(), r: r })); }
+  catch(e) {}
 }
 
-/* ── Gateway Testing ──────────────────────────────────── */
-async function testGateway(gw, i) {
-  var card   = document.getElementById('gw-' + i);
-  var status = document.getElementById('status-' + i);
-  var btn    = document.getElementById('btn-' + i);
-  var start  = performance.now();
+/* =================================================================
+   TEST A SINGLE GATEWAY
+   Returns { fqdn, url, ms, ok }
+   ================================================================= */
+function testOne(fqdn) {
+  var url = 'https://' + ARNS + '.' + fqdn;
+  var start = performance.now();
+  var ctrl  = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, TIMO);
 
-  try {
-    var controller = new AbortController();
-    var tm = setTimeout(function() { controller.abort(); }, TIMEOUT_MS);
-
-    await fetch(gw.url, {
-      method: 'HEAD',
-      mode: 'no-cors',
-      cache: 'no-store',
-      signal: controller.signal
+  return fetch(url, { method: 'HEAD', mode: 'no-cors', signal: ctrl.signal })
+    .then(function() {
+      clearTimeout(timer);
+      return { fqdn: fqdn, url: url, ms: Math.round(performance.now() - start), ok: true };
+    })
+    .catch(function() {
+      clearTimeout(timer);
+      return { fqdn: fqdn, url: url, ms: null, ok: false };
     });
+}
 
-    clearTimeout(tm);
-    var ms = Math.round(performance.now() - start);
+/* =================================================================
+   WAVE SCANNER
+   ================================================================= */
+function startScan() {
+  if (scanning) return;
+  scanning = true;
+  results = [];
+  totalTested = 0;
+  $res.innerHTML = '';
+  $empty.style.display = 'none';
+  $rBar.style.display = 'none';
+  cancelRedirect();
+  $ban.classList.add('scanning');
+  $txt.textContent = '🔍 Discovering best gateways…';
+  $prog.style.width = '0%';
 
-    card.className = 'card online';
-    status.className = 'status ok';
-    status.textContent = ms + ' ms';
-    btn.className = 'go-btn';
+  /* Build deduplicated list: priority first, then by stake */
+  var seen = {};
+  var all  = [];
+  var i, f;
 
-    results.push({ gw: gw, ms: ms, online: true, index: i });
-
-    /* First online = fastest (parallel race) */
-    if (!fastestGw) {
-      fastestGw = gw;
-      document.getElementById('nameBadge-' + i).innerHTML =
-        '<span class="badge badge-fastest">fastest</span> ';
-      card.classList.add('fastest');
-    }
-  } catch (e) {
-    card.className = 'card offline';
-    status.className = 'status fail';
-    status.textContent = e.name === 'AbortError' ? 'timeout' : 'offline';
-    btn.className = 'go-btn disabled';
-    results.push({ gw: gw, ms: Infinity, online: false, index: i });
+  for (i = 0; i < PRIORITY.length; i++) {
+    f = PRIORITY[i];
+    if (!EXCLUDE[f] && !seen[f]) { seen[f] = 1; all.push(f); }
+  }
+  for (i = 0; i < BY_STAKE.length; i++) {
+    f = BY_STAKE[i];
+    if (!EXCLUDE[f] && !seen[f]) { seen[f] = 1; all.push(f); }
   }
 
-  tested++;
-  progress.style.width = Math.round((tested / GATEWAYS.length) * 100) + '%';
+  var totalWaves = Math.ceil(all.length / WAVE);
+  var waveIdx = 0;
+
+  function runWave() {
+    if (waveIdx >= totalWaves || results.length >= WANT) {
+      return finish();
+    }
+
+    var batch = all.slice(waveIdx * WAVE, (waveIdx + 1) * WAVE);
+    $txt.textContent = '🔍 Wave ' + (waveIdx + 1) + '/' + totalWaves +
+      ' — testing ' + batch.length + ' gateways… (found ' + results.length + ')';
+    $prog.style.width = Math.round(((waveIdx + 1) / totalWaves) * 100) + '%';
+
+    Promise.all(batch.map(testOne)).then(function(waveRes) {
+      for (var j = 0; j < waveRes.length; j++) {
+        totalTested++;
+        if (waveRes[j].ok) results.push(waveRes[j]);
+      }
+
+      /* Sort by speed and re-render */
+      results.sort(function(a, b) { return a.ms - b.ms; });
+      renderCards();
+
+      waveIdx++;
+      if (results.length >= WANT) {
+        $prog.style.width = '100%';
+        return finish();
+      }
+      runWave();
+    });
+  }
+
+  function finish() {
+    $ban.classList.remove('scanning');
+    scanning = false;
+
+    if (results.length === 0) {
+      $txt.textContent = '❌ No working gateways found.';
+      $empty.style.display = 'block';
+    } else {
+      $txt.innerHTML = '✅ Found <strong>' + results.length +
+        '</strong> working gateway' + (results.length > 1 ? 's' : '') +
+        ' from ' + totalTested + ' tested' +
+        ' <span style="color:var(--dim)">(670+ available)</span>' +
+        ' &nbsp;<button class="retest-btn" onclick="startScan()">🔄 Rescan</button>';
+      cacheSave(results);
+      startRedirect(results[0]);
+    }
+  }
+
+  runWave();
 }
 
-/* ── Sort Cards by Speed ──────────────────────────────── */
-function sortCards() {
-  results.sort(function(a, b) {
-    if (a.online !== b.online) return a.online ? -1 : 1;
-    return a.ms - b.ms;
-  });
+/* =================================================================
+   RENDER RESULT CARDS
+   ================================================================= */
+function renderCards() {
+  $res.innerHTML = '';
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var fastest  = (i === 0);
+    var priority = PRIORITY.indexOf(r.fqdn) !== -1;
 
-  results.forEach(function(r, pos) {
-    var card = document.getElementById('gw-' + r.index);
-    var rank = document.getElementById('rank-' + r.index);
-    card.style.order = pos;
-    rank.textContent = pos + 1;
-  });
+    var card = document.createElement('div');
+    card.className = 'card' + (fastest ? ' fastest' : '');
+    card.setAttribute('role', 'listitem');
+    card.style.animationDelay = (i * 0.06) + 's';
+
+    var badges = '';
+    if (fastest)  badges += '<span class="badge badge-fastest">⭐ Fastest</span>';
+    if (priority) badges += '<span class="badge badge-priority">Priority</span>';
+
+    card.innerHTML =
+      '<div class="card-rank">#' + (i + 1) + '</div>' +
+      '<div class="card-info">' +
+        '<div class="card-name">' + esc(r.fqdn) + '</div>' +
+        '<div class="card-url">' + esc(r.url) + '</div>' +
+        (badges ? '<div class="card-badges">' + badges + '</div>' : '') +
+      '</div>' +
+      '<div class="card-speed">' + r.ms + ' ms</div>' +
+      '<a class="go-btn" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">Visit</a>';
+
+    $res.appendChild(card);
+  }
 }
 
-/* ── Auto-Redirect Countdown ──────────────────────────── */
+/* =================================================================
+   AUTO-REDIRECT COUNTDOWN
+   ================================================================= */
 function startRedirect(gw) {
-  var sec = REDIRECT_SEC;
-  redirectBox.classList.add('active');
-  redirectTgt.innerHTML = '<a href="' + escapeAttr(gw.url) + '">' + escapeHtml(gw.name) + '</a>';
-  countdown.textContent = sec;
+  rdCount = RD_SEC;
+  $rBar.style.display = 'block';
 
-  redirectId = setInterval(function() {
-    sec--;
-    countdown.textContent = sec;
-    if (sec <= 0) {
-      clearInterval(redirectId);
+  /* Reset progress bar */
+  $rProg.style.transition = 'none';
+  $rProg.style.width = '100%';
+  $rProg.offsetHeight; /* force reflow */
+  $rProg.style.transition = 'width ' + RD_SEC + 's linear';
+  $rProg.style.width = '0%';
+
+  rdLabel(gw);
+
+  rdTimer = setInterval(function() {
+    rdCount--;
+    rdLabel(gw);
+    if (rdCount <= 0) {
+      clearInterval(rdTimer);
+      rdTimer = null;
       window.location.href = gw.url;
     }
   }, 1000);
 }
 
+function rdLabel(gw) {
+  $rTxt.innerHTML = '⏱ Redirecting to <span class="cd">' + esc(gw.fqdn) +
+    '</span> in <span class="cd">' + rdCount + 's</span>';
+}
+
 function cancelRedirect() {
-  if (redirectId) clearInterval(redirectId);
-  redirectBox.classList.remove('active');
-  autoMsg.innerHTML = '\u2714\uFE0F Redirect cancelled \u2014 pick a gateway manually above.';
+  if (rdTimer) { clearInterval(rdTimer); rdTimer = null; }
+  $rBar.style.display = 'none';
 }
 
-/* ── Run All Tests ────────────────────────────────────── */
-function runTests() {
-  /* Reset state */
-  results    = [];
-  tested     = 0;
-  fastestGw  = null;
-  if (redirectId) clearInterval(redirectId);
-  redirectBox.classList.remove('active');
-  progress.style.width = '0%';
-  autoMsg.innerHTML = '\u23F3 Testing gateways\u2026';
-  retestBtn.disabled = true;
-
-  renderCards();
-
-  Promise.all(GATEWAYS.map(function(gw, i) {
-    return testGateway(gw, i);
-  })).then(function() {
-    retestBtn.disabled = false;
-    sortCards();
-
-    var onlineCount = results.filter(function(r) { return r.online; }).length;
-
-    if (fastestGw) {
-      autoMsg.innerHTML =
-        '\u2705 <strong>' + onlineCount + '/' + GATEWAYS.length + '</strong> gateways online \u2014 fastest: <a href="' +
-        escapeAttr(fastestGw.url) + '" style="color:var(--gold);font-weight:bold;">' +
-        escapeHtml(fastestGw.name) + '</a>';
-      startRedirect(fastestGw);
-    } else {
-      autoMsg.innerHTML =
-        '\u274C No gateways responded. Try again later or visit ' +
-        '<a href="https://www.rufuswiena.com" style="color:var(--red);">rufuswiena.com</a> directly.';
-    }
-  });
-}
-
-/* ── Init ─────────────────────────────────────────────── */
-runTests();
+/* =================================================================
+   INIT
+   ================================================================= */
+(function() {
+  var cached = cacheLoad();
+  if (cached && cached.length > 0) {
+    results = cached;
+    $ban.classList.remove('scanning');
+    $txt.innerHTML = '⚡ Cached results — <strong>' + results.length +
+      '</strong> gateway' + (results.length > 1 ? 's' : '') +
+      ' &nbsp;<button class="retest-btn" onclick="startScan()">🔄 Rescan</button>';
+    $prog.style.width = '100%';
+    renderCards();
+    startRedirect(results[0]);
+  } else {
+    startScan();
+  }
+})();
 </script>
 
 </body>
