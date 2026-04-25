@@ -357,12 +357,12 @@ a.go-btn.disabled {
 
 /* =================================================================
    GATEWAY CONFIG
-   ================================================================= */
 var ARNS = 'rufuswiena';
 var TIMO = 7000;
 var RD_SEC = 10;
-var C_KEY = 'rw-gw-v5';
+var C_KEY = 'rw-gw-v6';
 var C_TTL = 600000;
+var PRI_THRESHOLD = 500; /* ms — prefer primary under this speed */
 
 /* 3 trusted primary gateways — always shown at #1 #2 #3 */
 var PRIMARY = [
@@ -506,11 +506,8 @@ function startScan() {
   PRIMARY.forEach(function(gw, i) {
     $pri.appendChild(makeCard(gw, i + 1, 'checking', null, true, false));
   });
-
   var priResults = [];
   var bakResults = [];
-  var bestMs = Infinity;
-  var bestFqdn = null;
 
   /* Phase 1: test primaries first */
   Promise.all(PRIMARY.map(function(gw) {
@@ -521,21 +518,37 @@ function startScan() {
   })).then(function(res) {
     priResults = res;
 
-    /* Find fastest primary */
+    /* Find best primary: prefer one under 500ms, else fastest available */
+    var bestPriFqdn = null;
+    var bestPriMs = Infinity;
+    var fastPriFqdn = null; /* under threshold */
+    var fastPriMs = Infinity;
+
     res.forEach(function(r) {
-      if (r.ok && r.ms < bestMs) { bestMs = r.ms; bestFqdn = r.fqdn; }
+      if (r.ok) {
+        if (r.ms < bestPriMs) { bestPriMs = r.ms; bestPriFqdn = r.fqdn; }
+        if (r.ms < PRI_THRESHOLD && r.ms < fastPriMs) { fastPriMs = r.ms; fastPriFqdn = r.fqdn; }
+      }
     });
+
+    /* Redirect target: fast primary > any primary > none */
+    var redirectFqdn = fastPriFqdn || bestPriFqdn || null;
 
     /* Re-render primaries with results */
     $pri.innerHTML = '';
     PRIMARY.forEach(function(gw, i) {
       var r = res[i];
       var state = r.ok ? 'ok' : 'fail';
-      var fastest = (r.fqdn === bestFqdn);
+      var fastest = (r.fqdn === redirectFqdn);
       $pri.appendChild(makeCard(gw, i + 1, state, r.ms, true, fastest));
     });
 
-    /* Phase 2: test backups */
+    /* Start auto-redirect to primary NOW if one works */
+    if (redirectFqdn) {
+      startRedirect(redirectFqdn);
+    }
+
+    /* Phase 2: test backups (in background while redirect counts down) */
     $bakLabel.style.display = 'flex';
     BACKUP.forEach(function(gw, i) {
       $bak.appendChild(makeCard(gw, i + 4, 'checking', null, false, false));
@@ -550,21 +563,7 @@ function startScan() {
   }).then(function(res) {
     bakResults = res;
 
-    /* Check if any backup is globally fastest */
-    res.forEach(function(r) {
-      if (r.ok && r.ms < bestMs) { bestMs = r.ms; bestFqdn = r.fqdn; }
-    });
-
-    /* Re-render primaries (in case backup beat them for fastest badge) */
-    $pri.innerHTML = '';
-    PRIMARY.forEach(function(gw, i) {
-      var r = priResults[i];
-      var state = r.ok ? 'ok' : 'fail';
-      var fastest = (r.fqdn === bestFqdn);
-      $pri.appendChild(makeCard(gw, i + 1, state, r.ms, true, fastest));
-    });
-
-    /* Render backups — sort working ones first by speed, offline at bottom */
+    /* Render backups — sort working first by speed, offline at bottom */
     var sorted = BACKUP.map(function(gw, i) {
       return { gw: gw, r: res[i] };
     }).sort(function(a, b) {
@@ -577,16 +576,19 @@ function startScan() {
     $bak.innerHTML = '';
     sorted.forEach(function(item, i) {
       var state = item.r.ok ? 'ok' : 'fail';
-      var fastest = (item.r.fqdn === bestFqdn);
-      $bak.appendChild(makeCard(item.gw, i + 4, state, item.r.ms, false, fastest));
+      $bak.appendChild(makeCard(item.gw, i + 4, state, item.r.ms, false, false));
     });
 
-    /* Auto-redirect to fastest working gateway */
-    if (bestFqdn) {
-      cacheSave(priResults, bakResults);
-      startRedirect(bestFqdn);
+    /* If NO primary worked, check if any backup works as last resort */
+    var anyPriWorked = priResults.some(function(r) { return r.ok; });
+    if (!anyPriWorked) {
+      var bestBak = sorted.find(function(s) { return s.r.ok; });
+      if (bestBak) {
+        startRedirect(bestBak.r.fqdn);
+      }
     }
 
+    cacheSave(priResults, bakResults);
     $retest.style.display = 'block';
     scanning = false;
   });
