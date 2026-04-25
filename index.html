@@ -14,17 +14,17 @@
 :root {
   --accent: #FF6666;
   --accent-dim: rgba(255,102,102,0.15);
-  --accent-glow: rgba(255,102,102,0.25);
+  --accent-glow: rgba(255,102,102,0.08);
   --bg: #000;
-  --panel: rgba(255,255,255,0.04);
-  --panel-border: rgba(255,255,255,0.08);
+  --panel: rgba(255,255,255,0.035);
+  --panel-border: rgba(255,255,255,0.07);
+  --panel-hover: rgba(255,255,255,0.055);
   --text: #fff;
-  --dim: rgba(255,255,255,0.5);
+  --dim: rgba(255,255,255,0.45);
   --ok: #2ecc71;
   --gold: #f1c40f;
-  --gold-dim: rgba(241,196,15,0.12);
-  --radius: 16px;
-  --radius-sm: 10px;
+  --gold-dim: rgba(241,196,15,0.10);
+  --radius: 18px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -36,27 +36,47 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 0;
+  overflow-x: hidden;
+}
+
+/* ── Particle Canvas ── */
+#particles {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Everything else above canvas */
+.top-bar, .hero, .status-banner, #results, .redirect-bar, .empty-state, .footer, noscript {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Top Bar / Header ── */
 .top-bar {
   width: 100%;
   max-width: 720px;
-  padding: 1.5rem 1.5rem 0;
+  padding: 1.8rem 1.5rem 0;
   display: flex;
   align-items: center;
   gap: 0.9rem;
 }
 .logo-img {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   object-fit: cover;
+  opacity: 0.9;
+  transition: opacity 0.2s;
 }
+.logo-img:hover { opacity: 1; }
 .top-brand {
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1rem;
   letter-spacing: -0.01em;
+  color: rgba(255,255,255,0.7);
 }
 .top-brand span { color: var(--accent); }
 
@@ -64,15 +84,15 @@ body {
 .hero {
   width: 100%;
   max-width: 720px;
-  padding: 2.5rem 1.5rem 1.5rem;
+  padding: 3rem 1.5rem 1.8rem;
   text-align: center;
 }
 .hero h1 {
-  font-size: 1.85rem;
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 0.6rem;
-  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-bottom: 0.7rem;
+  letter-spacing: -0.025em;
 }
 .hero h1 em {
   font-style: normal;
@@ -80,10 +100,10 @@ body {
 }
 .hero p {
   color: var(--dim);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 300;
-  line-height: 1.6;
-  max-width: 480px;
+  line-height: 1.7;
+  max-width: 460px;
   margin: 0 auto;
 }
 
@@ -91,8 +111,8 @@ body {
 .status-banner {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius);
   padding: 1rem 1.4rem;
   margin: 0 1.5rem 1.2rem;
@@ -101,30 +121,30 @@ body {
   text-align: center;
 }
 .status-text {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 400;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
   line-height: 1.5;
   color: var(--dim);
 }
 .progress-track {
-  height: 3px;
-  background: rgba(255,255,255,0.06);
+  height: 2px;
+  background: rgba(255,255,255,0.05);
   border-radius: 2px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), #ff9966);
   border-radius: 2px;
   width: 0%;
   transition: width 0.5s ease;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 0.45; }
+  0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
-.scanning .status-text { animation: pulse 1.8s ease-in-out infinite; }
+.scanning .status-text { animation: pulse 2s ease-in-out infinite; }
 
 /* ── Gateway Cards ── */
 #results {
@@ -135,29 +155,32 @@ body {
 .card {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius);
   padding: 1rem 1.2rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.55rem;
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  animation: slideIn 0.4s ease forwards;
+  animation: slideIn 0.45s ease forwards;
   opacity: 0;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
 }
-.card:hover { border-color: rgba(255,255,255,0.15); }
+.card:hover {
+  border-color: rgba(255,255,255,0.13);
+  background: var(--panel-hover);
+}
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .card.fastest {
-  border-color: var(--gold);
-  box-shadow: 0 0 20px var(--gold-dim);
+  border-color: rgba(241,196,15,0.35);
+  box-shadow: 0 0 24px var(--gold-dim), inset 0 0 30px rgba(241,196,15,0.02);
 }
 .card-rank {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--dim);
   min-width: 32px;
@@ -167,14 +190,14 @@ body {
 .card-info { flex: 1; min-width: 0; }
 .card-name {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .card-url {
   color: var(--dim);
-  font-size: 0.73rem;
+  font-size: 0.7rem;
   word-break: break-all;
   margin-top: 0.1rem;
   font-weight: 300;
@@ -182,71 +205,72 @@ body {
 .card-badges { margin-top: 0.25rem; }
 .badge {
   display: inline-block;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 500;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 20px;
-  margin-right: 0.3rem;
+  margin-right: 0.25rem;
+  letter-spacing: 0.01em;
 }
 .badge-fastest { background: var(--gold); color: #000; }
 .badge-priority { background: var(--accent-dim); color: var(--accent); }
 .card-speed {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--ok);
   white-space: nowrap;
-  min-width: 52px;
+  min-width: 50px;
   text-align: right;
 }
 a.go-btn {
   display: inline-block;
   background: var(--accent);
   color: #000;
-  padding: 0.45rem 1rem;
+  padding: 0.45rem 1.1rem;
   border-radius: 24px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   white-space: nowrap;
   transition: opacity 0.2s, transform 0.15s;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.015em;
 }
-a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
+a.go-btn:hover { opacity: 0.88; transform: scale(1.04); }
 
 /* ── Redirect Bar ── */
 .redirect-bar {
   background: var(--panel);
-  border: 1px solid rgba(241,196,15,0.25);
-  backdrop-filter: blur(12px);
+  border: 1px solid rgba(241,196,15,0.2);
+  backdrop-filter: blur(16px);
   border-radius: var(--radius);
   padding: 0.8rem 1.2rem;
-  margin: 0.6rem 1.5rem 0;
+  margin: 0.5rem 1.5rem 0;
   width: 100%;
   max-width: 620px;
   display: none;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   font-weight: 400;
 }
 .redirect-bar .cd { color: var(--gold); font-weight: 600; }
 .redirect-bar button {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.07);
   color: var(--text);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 0.3rem 0.8rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.28rem 0.75rem;
   border-radius: 20px;
   cursor: pointer;
   margin-left: 0.5rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-family: inherit;
   transition: background 0.2s;
 }
-.redirect-bar button:hover { background: rgba(255,255,255,0.14); }
+.redirect-bar button:hover { background: rgba(255,255,255,0.13); }
 .redir-prog {
   height: 2px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
   border-radius: 2px;
-  margin-top: 0.6rem;
+  margin-top: 0.5rem;
   overflow: hidden;
 }
 .redir-prog-fill {
@@ -258,18 +282,18 @@ a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
 
 /* ── Rescan button ── */
 .retest-btn {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
   color: var(--dim);
-  padding: 0.3rem 0.8rem;
+  padding: 0.28rem 0.75rem;
   border-radius: 20px;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-family: inherit;
   transition: all 0.2s;
   vertical-align: middle;
 }
-.retest-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+.retest-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
 
 /* ── Empty fallback ── */
 .empty-state {
@@ -277,7 +301,7 @@ a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
   color: var(--dim);
   padding: 2rem 1.5rem;
   display: none;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.7;
 }
 .empty-state a { color: var(--accent); text-decoration: none; }
@@ -286,35 +310,39 @@ a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
 /* ── Footer ── */
 .footer {
   margin-top: auto;
-  padding: 2.5rem 1.5rem 1.5rem;
-  color: rgba(255,255,255,0.25);
-  font-size: 0.72rem;
+  padding: 3rem 1.5rem 1.5rem;
+  color: rgba(255,255,255,0.2);
+  font-size: 0.7rem;
   text-align: center;
   line-height: 1.8;
   font-weight: 300;
 }
 .footer a {
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.3);
   text-decoration: none;
 }
 .footer a:hover { color: var(--accent); }
 
 /* ── Mobile ── */
 @media (max-width: 520px) {
-  .hero { padding: 2rem 1rem 1rem; }
-  .hero h1 { font-size: 1.45rem; }
+  .hero { padding: 2.2rem 1rem 1.2rem; }
+  .hero h1 { font-size: 1.5rem; }
+  .hero p { font-size: 0.84rem; }
   #results { padding: 0 1rem; }
-  .card { flex-wrap: wrap; gap: 0.5rem; padding: 0.9rem; }
+  .card { flex-wrap: wrap; gap: 0.5rem; padding: 0.9rem; border-radius: 14px; }
   .card-rank { min-width: 28px; font-size: 1rem; }
   .card-speed { min-width: auto; }
   a.go-btn { width: 100%; text-align: center; margin-top: 0.3rem; }
-  .top-bar { padding: 1.2rem 1rem 0; }
-  .status-banner { margin: 0 1rem 1rem; }
-  .redirect-bar { margin: 0.5rem 1rem 0; }
+  .top-bar { padding: 1.3rem 1rem 0; }
+  .status-banner { margin: 0 1rem 1rem; border-radius: 14px; }
+  .redirect-bar { margin: 0.4rem 1rem 0; border-radius: 14px; }
 }
 </style>
 </head>
 <body>
+
+<!-- ── Particle Background ── -->
+<canvas id="particles"></canvas>
 
 <!-- ── Header ── -->
 <div class="top-bar">
@@ -354,7 +382,7 @@ a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
 </div>
 
 <noscript>
-  <p style="text-align:center;margin-top:3rem;color:rgba(255,255,255,0.4);font-family:'Poppins',sans-serif">
+  <p style="text-align:center;margin-top:3rem;color:rgba(255,255,255,0.35);font-family:'Poppins',sans-serif">
     JavaScript is required. Or visit
     <a href="https://rufuswiena.ar.io" style="color:#FF6666">rufuswiena.ar.io</a> directly.
   </p>
@@ -369,24 +397,107 @@ a.go-btn:hover { opacity: 0.88; transform: scale(1.03); }
 
 <script>
 /* =================================================================
+   CONSTELLATION PARTICLE BACKGROUND
+   Subtle animated dots + connecting lines on dark background.
+   Lightweight — <60 particles, requestAnimationFrame based.
+   ================================================================= */
+(function() {
+  var cvs = document.getElementById('particles');
+  var ctx = cvs.getContext('2d');
+  var W, H, particles = [], LINK_DIST = 120, N = 50;
+  var RAF;
+
+  function resize() {
+    W = cvs.width = window.innerWidth;
+    H = cvs.height = window.innerHeight;
+    /* Adjust count for mobile */
+    N = W < 520 ? 28 : W < 900 ? 40 : 55;
+    if (particles.length > N) particles.length = N;
+    while (particles.length < N) particles.push(makePt());
+  }
+
+  function makePt() {
+    return {
+      x: Math.random() * (W || 1),
+      y: Math.random() * (H || 1),
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      r: Math.random() * 1.2 + 0.5
+    };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    var i, j, p, q, dx, dy, dist;
+
+    /* Draw lines */
+    for (i = 0; i < particles.length; i++) {
+      p = particles[i];
+      for (j = i + 1; j < particles.length; j++) {
+        q = particles[j];
+        dx = p.x - q.x;
+        dy = p.y - q.y;
+        dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < LINK_DIST) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = 'rgba(255,102,102,' + (0.06 * (1 - dist / LINK_DIST)).toFixed(3) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    /* Draw dots + move */
+    for (i = 0; i < particles.length; i++) {
+      p = particles[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fill();
+
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -10) p.x = W + 10;
+      if (p.x > W + 10) p.x = -10;
+      if (p.y < -10) p.y = H + 10;
+      if (p.y > H + 10) p.y = -10;
+    }
+
+    RAF = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+
+  /* Pause when tab not visible for perf */
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) { cancelAnimationFrame(RAF); }
+    else { draw(); }
+  });
+})();
+
+/* =================================================================
    CONFIGURATION
    ================================================================= */
 var ARNS   = 'rufuswiena';
 var WANT   = 5;
 var WAVE   = 10;
 var TIMO   = 6000;
-var C_KEY  = 'rw-gw-v3';
+var C_KEY  = 'rw-gw-v4';
 var C_TTL  = 600000;
 var RD_SEC = 10;
 
-/* ── Priority gateways — verified ArNS-compatible & tested working 2026-04-25 ── */
+/* ── Priority gateways — verified working + serving correct content 2026-04-25 ── */
 var PRIORITY = ['ar.io', 'arweave.net', 'ardrive.net'];
 
-/* ── Top 30 gateways by operator stake weight ──
+/* ── Top gateways by operator stake weight ──
    Source: ar.io network via ARIO SDK — updated 2026-04-25
    Total network: ~670 gateways. */
 var BY_STAKE = [
-  'ar.randao.net','frostor.xyz','ariospeedwagon.com',
+  'frostor.xyz','ariospeedwagon.com',
   'exnihilio.dnshome.de','ario-gateway.nethermind.dev',
   'nodeario.xyz','vilenarios.com','ar.perplex.finance',
   'arweave.developerdao.com','umutdogan.space','khang.pro',
@@ -397,15 +508,21 @@ var BY_STAKE = [
   'boramir.xyz','zigza.xyz'
 ];
 
-/* ── Exclusion list ── */
-var EXCLUDE = { 'ar-io.dev': 1, 'g8way.io': 1, 'arweave.dev': 1, 'openar.dev': 1, 'ario.oceanprotocol.com': 1 };
+/* ── Exclusion — known broken, wrong content, or no ArNS support ── */
+var EXCLUDE = {
+  'ar-io.dev': 1,
+  'g8way.io': 1,
+  'arweave.dev': 1,
+  'openar.dev': 1,
+  'ario.oceanprotocol.com': 1,
+  'ar.randao.net': 1
+};
 
 /* =================================================================
    STATE
    ================================================================= */
 var results = [], scanning = false, rdTimer = null, rdCount = RD_SEC, totalTested = 0;
 
-/* DOM */
 var $ban = document.getElementById('statusBanner');
 var $txt = document.getElementById('statusText');
 var $prog = document.getElementById('progressFill');
@@ -415,7 +532,6 @@ var $rTxt = document.getElementById('redirectText');
 var $rProg = document.getElementById('redirProg');
 var $empty = document.getElementById('emptyState');
 
-/* XSS safe */
 function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 /* =================================================================
@@ -435,17 +551,44 @@ function cacheSave(r) {
 }
 
 /* =================================================================
-   TEST A SINGLE GATEWAY
+   TEST A SINGLE GATEWAY (with content validation)
+   Two-phase: 1) no-cors HEAD for speed, 2) cors GET to verify content.
+   Phase 2 catches gateways that respond 200 but serve wrong page.
    ================================================================= */
 function testOne(fqdn) {
   var url = 'https://' + ARNS + '.' + fqdn;
   var start = performance.now();
   var ctrl = new AbortController();
   var timer = setTimeout(function() { ctrl.abort(); }, TIMO);
+
+  /* Phase 1: fast no-cors check (is the server up?) */
   return fetch(url, { method: 'HEAD', mode: 'no-cors', signal: ctrl.signal })
     .then(function() {
       clearTimeout(timer);
-      return { fqdn: fqdn, url: url, ms: Math.round(performance.now() - start), ok: true };
+      var ms = Math.round(performance.now() - start);
+
+      /* Phase 2: try cors GET to verify content (quick body check) */
+      var ctrl2 = new AbortController();
+      var timer2 = setTimeout(function() { ctrl2.abort(); }, 4000);
+
+      return fetch(url, { method: 'GET', mode: 'cors', signal: ctrl2.signal })
+        .then(function(res) {
+          clearTimeout(timer2);
+          if (!res.ok) return { fqdn: fqdn, url: url, ms: null, ok: false };
+          return res.text().then(function(body) {
+            /* Verify it's the real site, not an ArNS landing page */
+            var isReal = body.indexOf('rufuswiena') !== -1 &&
+                         body.indexOf('Make this domain space yours') === -1 &&
+                         body.indexOf('Get yours now') === -1;
+            if (isReal) return { fqdn: fqdn, url: url, ms: ms, ok: true };
+            return { fqdn: fqdn, url: url, ms: null, ok: false };
+          });
+        })
+        .catch(function() {
+          /* CORS blocked — fall back to Phase 1 result (trust the HEAD) */
+          clearTimeout(timer2);
+          return { fqdn: fqdn, url: url, ms: ms, ok: true };
+        });
     })
     .catch(function() {
       clearTimeout(timer);
@@ -466,7 +609,7 @@ function startScan() {
   $rBar.style.display = 'none';
   cancelRedirect();
   $ban.classList.add('scanning');
-  $txt.textContent = '🔍 Discovering best gateways\u2026';
+  $txt.textContent = '\uD83D\uDD0D Discovering best gateways\u2026';
   $prog.style.width = '0%';
 
   var seen = {}, all = [], i, f;
@@ -532,7 +675,7 @@ function renderCards() {
     var card = document.createElement('div');
     card.className = 'card' + (fastest ? ' fastest' : '');
     card.setAttribute('role', 'listitem');
-    card.style.animationDelay = (i * 0.07) + 's';
+    card.style.animationDelay = (i * 0.08) + 's';
     var badges = '';
     if (fastest)  badges += '<span class="badge badge-fastest">\u2B50 Fastest</span>';
     if (priority) badges += '<span class="badge badge-priority">Priority</span>';
