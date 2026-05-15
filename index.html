@@ -80,6 +80,18 @@ body {
   color: var(--dim); font-size: 0.88rem; font-weight: 300;
   line-height: 1.7; max-width: 460px; margin: 0 auto;
 }
+.hero-progress {
+  height: 3px; max-width: 460px; margin: 1.2rem auto 0;
+  background: rgba(255,255,255,0.04); border-radius: 2px;
+  overflow: hidden; opacity: 0;
+  transition: opacity 0.3s;
+}
+.hero-progress.active { opacity: 1; }
+.hero-progress-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--accent), #ff9966);
+  border-radius: 2px;
+}
 
 /* ── Section labels ── */
 .section-label {
@@ -241,8 +253,9 @@ a.go-btn.disabled {
 
 <!-- Hero -->
 <div class="hero">
-  <h1>Connecting you to the <em>permanent web</em></h1>
-  <p>Your gateway to rufuswiena's censorship-resistant website — permanently stored on Arweave, accessible through hundreds of gateways worldwide.</p>
+  <h1>Connecting you to <em>Rufus Wiena</em> on the permanent web</h1>
+  <p>Your gateway to a censorship-resistant website — permanently stored on Arweave, accessible through hundreds of gateways worldwide.</p>
+  <div class="hero-progress"><div class="hero-progress-fill" id="heroProgress"></div></div>
 </div>
 
 <!-- Primary Gateways -->
@@ -360,7 +373,7 @@ a.go-btn.disabled {
    ================================================================= */
 var ARNS = 'rufuswiena';
 var TIMO = 7000;
-var RD_SEC = 10;
+var RD_SEC = 4;
 var C_KEY = 'rw-gw-v6';
 var C_TTL = 600000;
 var PRI_THRESHOLD = 500; /* ms — prefer primary under this speed */
@@ -483,7 +496,7 @@ function makeCard(gw, rank, state, ms, isPrimary, isFastest) {
       (badges ? '<div class="card-badges">' + badges + '</div>' : '') +
     '</div>' +
     statusHtml +
-    '<a class="' + btnCls + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Visit</a>';
+    '<a class="' + btnCls + '" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Choose gateway</a>';
   return card;
 }
 
@@ -602,26 +615,34 @@ var $rBar = document.getElementById('redirectBar');
 var $rTxt = document.getElementById('redirectText');
 var $rProg = document.getElementById('redirProg');
 
+var $heroProg = document.getElementById('heroProgress');
+
 function startRedirect(fqdn) {
   var url = 'https://' + ARNS + '.' + fqdn;
   rdCount = RD_SEC;
+
+  /* Show hero progress bar */
+  $heroProg.parentElement.classList.add('active');
+  $heroProg.style.transition = 'none';
+  $heroProg.style.width = '100%';
+  $heroProg.offsetHeight;
+  $heroProg.style.transition = 'width ' + RD_SEC + 's linear';
+  $heroProg.style.width = '0%';
+
+  /* Hide old bar, show cancel in redirect bar (minimal) */
   $rBar.style.display = 'block';
-  $rProg.style.transition = 'none';
-  $rProg.style.width = '100%';
-  $rProg.offsetHeight;
-  $rProg.style.transition = 'width ' + RD_SEC + 's linear';
-  $rProg.style.width = '0%';
-  rdLabel(fqdn);
+  $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong>…';
+
   rdTimer = setInterval(function() {
-    rdCount--; rdLabel(fqdn);
+    rdCount--;
     if (rdCount <= 0) { clearInterval(rdTimer); rdTimer = null; window.location.href = url; }
   }, 1000);
 }
-function rdLabel(fqdn) {
-  $rTxt.innerHTML = '⏱ Redirecting to <span class="cd">' + esc(fqdn) + '</span> in <span class="cd">' + rdCount + 's</span>';
-}
 function cancelRedirect() {
   if (rdTimer) { clearInterval(rdTimer); rdTimer = null; }
+  $heroProg.parentElement.classList.remove('active');
+  $heroProg.style.transition = 'none';
+  $heroProg.style.width = '0%';
   $rBar.style.display = 'none';
 }
 
