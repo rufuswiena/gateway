@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>rufuswiena — Connect to the Permanent Web</title>
 <meta name="description" content="Connect to rufuswiena's permanent, censorship-resistant website hosted on Arweave. Smart auto-discovery finds the fastest gateway for you.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://relay.libertygrid.one; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https:;">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script defer src="https://relay.libertygrid.one/script.js" data-website-id="47d91ea7-0db2-40fc-bc7f-a3d2d3c5de07"></script>
 <style>
 :root {
   --accent: #FF6666;
@@ -54,7 +55,7 @@ body {
 
 /* ── Top Bar ── */
 .top-bar {
-  width: 100%; max-width: 700px;
+  width: 100%; max-width: 1180px;
   padding: 1.8rem 1.5rem 0;
   display: flex; align-items: center; gap: 0.9rem;
 }
@@ -68,7 +69,7 @@ body {
 
 /* ── Hero ── */
 .hero {
-  width: 100%; max-width: 700px;
+  width: 100%; max-width: 1180px;
   padding: 3rem 1.5rem 1.5rem; text-align: center;
 }
 .hero h1 {
@@ -78,10 +79,10 @@ body {
 .hero h1 em { font-style: normal; color: var(--accent); }
 .hero p {
   color: var(--dim); font-size: 0.88rem; font-weight: 300;
-  line-height: 1.7; max-width: 460px; margin: 0 auto;
+  line-height: 1.7; max-width: 720px; margin: 0 auto;
 }
 .hero-progress {
-  height: 3px; max-width: 460px; margin: 1.2rem auto 0;
+  height: 4px; max-width: 780px; margin: 1.2rem auto 0;
   background: rgba(255,255,255,0.04); border-radius: 2px;
   overflow: hidden; opacity: 0;
   transition: opacity 0.3s;
@@ -112,6 +113,36 @@ body {
 
 /* ── Gateway Cards ── */
 .cards { width: 100%; max-width: 620px; padding: 0 1.5rem; }
+.gateway-layout {
+  width: min(1180px, calc(100% - 2rem));
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+  gap: 1rem;
+  align-items: start;
+  margin: 0.6rem auto 1.2rem;
+}
+.gateway-left, .gateway-right { min-width: 0; }
+.gateway-right {
+  border: 1px solid rgba(255,255,255,0.11);
+  background: linear-gradient(145deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+  border-radius: 24px;
+  padding: 1rem 0 0.9rem;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.24);
+}
+.gateway-right .section-label { max-width: none; }
+.gateway-right .cards { max-width: none; padding: 0 1rem; }
+.redirect-bar.top-redirect {
+  display: none;
+  width: min(1180px, calc(100% - 2rem));
+  max-width: 1180px;
+  margin: 0.2rem auto 0.8rem;
+  padding: 0.75rem 1rem;
+}
+.redirect-main { display:flex; align-items:center; justify-content:space-between; gap:0.9rem; }
+.redirect-main button { margin-left: 0; white-space: nowrap; }
+.redirect-bar .redir-prog { margin-top: 0.65rem; }
+
 .card {
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -221,11 +252,151 @@ a.go-btn.disabled {
 .footer a { color: rgba(255,255,255,0.28); text-decoration: none; }
 .footer a:hover { color: var(--accent); }
 
+
+
+/* ── Trust Passport / Verification ── */
+.trust-toggle {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 30;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,102,102,0.18); color: #fff; font-weight: 800; font-size: 1.05rem;
+  cursor: pointer; backdrop-filter: blur(14px); box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+}
+.trust-toggle:hover { background: rgba(255,102,102,0.3); transform: translateY(-1px); }
+.trust-panel {
+  width: min(1000px, calc(100% - 2rem));
+  margin: 0.8rem auto 1.15rem;
+  border: 1px solid rgba(255,255,255,0.13);
+  background: linear-gradient(145deg, rgba(20,20,24,0.94), rgba(10,10,12,0.92));
+  border-radius: 24px;
+  padding: 1.25rem;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.32);
+}
+.trust-panel.collapsed { display: none; }
+.trust-head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; margin-bottom:0.9rem; }
+.trust-eyebrow { color: var(--accent); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.28rem; }
+.trust-title { font-size: clamp(1.65rem, 3.4vw, 2.45rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; }
+.trust-subtitle { color: rgba(255,255,255,0.78); font-size: clamp(1rem, 1.6vw, 1.18rem); line-height: 1.5; margin-top:0.45rem; max-width: 780px; }
+.trust-close { background:transparent; border:0; color:rgba(255,255,255,0.62); font-size:1.8rem; cursor:pointer; line-height:1; padding: 0.1rem 0.25rem; }
+.trust-close:hover { color:#fff; }
+.trust-intro { display:grid; grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr); gap:1.1rem; align-items:stretch; }
+.trust-copy { font-size: clamp(1rem, 1.55vw, 1.14rem); line-height:1.62; color: rgba(255,255,255,0.86); }
+.trust-copy p { margin:0 0 0.78rem; }
+.trust-copy ul { margin: 0.7rem 0 0; padding:0; list-style:none; display:grid; gap:0.45rem; }
+.trust-copy li { position:relative; padding-left:1.55rem; }
+.trust-copy li::before { content:'✓'; position:absolute; left:0; top:0; color: var(--accent); font-weight:800; }
+.trust-mini-note { margin-top:0.9rem; padding:0.78rem 0.9rem; border-radius:16px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.82); }
+.trust-photo { margin:0; border-radius:22px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.045); min-height:100%; }
+.trust-photo img { width:100%; height: min(36vw, 360px); min-height:260px; object-fit:cover; display:block; }
+.trust-photo figcaption { padding:0.72rem 0.85rem; color:rgba(255,255,255,0.76); font-size:0.92rem; line-height:1.35; }
+.trust-proof-heading { margin:1.05rem 0 0.55rem; font-size:1rem; font-weight:800; color:#fff; }
+.trust-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:0.55rem; }
+.trust-item { border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); border-radius:15px; padding:0.72rem 0.78rem; min-width:0; }
+.trust-item b { display:block; color:rgba(255,255,255,0.93); font-size:0.78rem; margin-bottom:0.28rem; }
+.trust-item span, .trust-item code { color:rgba(255,255,255,0.72); font-size:0.8rem; line-height:1.35; overflow-wrap:anywhere; }
+.trust-item code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.trust-actions { display:flex; flex-wrap:wrap; gap:0.48rem; margin-top:0.95rem; }
+.trust-actions a, .trust-actions button {
+  border:1px solid rgba(255,102,102,0.3); background: rgba(255,102,102,0.1); color: var(--accent);
+  border-radius:999px; padding:0.48rem 0.78rem; font-size:0.78rem; text-decoration:none; cursor:pointer; font-family:inherit;
+}
+.trust-actions a:hover, .trust-actions button:hover { background: rgba(255,102,102,0.2); color:#fff; }
+.trust-status { display:none; color:var(--ok); font-size:0.8rem; margin-top:0.62rem; }
+.trust-note { color:rgba(255,255,255,0.62); font-size:0.82rem; margin-top:0.78rem; line-height:1.45; }
+@media (max-width: 860px) {
+  .trust-panel { width: calc(100% - 1rem); padding: 1rem; border-radius: 20px; }
+  .trust-intro { grid-template-columns:1fr; }
+  .trust-photo img { height: 330px; min-height: 300px; }
+  .trust-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .trust-title { font-size: 1.55rem; }
+  .trust-subtitle, .trust-copy { font-size: 0.98rem; }
+  .trust-grid { grid-template-columns:1fr; }
+  .trust-photo img { height: 290px; min-height: 250px; }
+  .trust-actions a, .trust-actions button { width:100%; text-align:center; justify-content:center; }
+}
+
+
+.info-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:0.55rem; margin:0.85rem 0 0.95rem; }
+.info-card { border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); border-radius:16px; padding:0.78rem; }
+.info-card b { display:block; color:#fff; font-size:0.86rem; margin-bottom:0.28rem; }
+.info-card span { display:block; color:rgba(255,255,255,0.72); font-size:0.78rem; line-height:1.45; }
+.media-verify { margin-top:0.9rem; display:grid; gap:0.75rem; }
+.media-block { border:1px solid rgba(255,255,255,0.09); background:rgba(255,255,255,0.04); border-radius:18px; padding:0.85rem; }
+.media-block h3 { font-size:0.9rem; margin-bottom:0.55rem; color:#fff; }
+.logo-row, .no-logo-row { display:flex; flex-wrap:wrap; gap:0.45rem; align-items:center; }
+.logo-chip, .no-chip { display:inline-flex; align-items:center; gap:0.45rem; min-height:36px; border-radius:999px; padding:0.36rem 0.62rem; text-decoration:none; font-size:0.78rem; font-weight:700; }
+.logo-chip { color:#fff; border:1px solid rgba(46,204,113,0.28); background:rgba(46,204,113,0.11); }
+.logo-chip:hover { background:rgba(46,204,113,0.2); }
+.logo-chip img, .no-chip img { width:19px; height:19px; display:block; }
+.no-chip { color:rgba(255,255,255,0.82); border:1px solid rgba(231,76,60,0.24); background:rgba(231,76,60,0.08); position:relative; }
+.no-chip::after { content:'×'; color:#ff5f5f; font-size:1.35rem; line-height:1; font-weight:900; margin-left:0.08rem; }
+.signal-contact { margin-top:0.7rem; color:rgba(255,255,255,0.74); font-size:0.82rem; line-height:1.45; }
+.trust-photo img { cursor: zoom-in; }
+.trust-photo button { display:block; width:100%; border:0; padding:0; margin:0; background:transparent; color:inherit; font:inherit; text-align:left; }
+.zoom-modal { position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,0.86); backdrop-filter:blur(8px); }
+.zoom-modal.open { display:flex; }
+.zoom-modal img { max-width:min(1100px,96vw); max-height:86vh; border-radius:22px; border:1px solid rgba(255,255,255,0.18); box-shadow:0 30px 120px rgba(0,0,0,0.7); object-fit:contain; }
+.zoom-close { position:fixed; top:1rem; right:1rem; width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.08); color:#fff; font-size:1.7rem; cursor:pointer; }
+.zoom-close:hover { background:rgba(255,255,255,0.16); }
+.trust-item { color:inherit; text-decoration:none; display:block; }
+.trust-item:hover { border-color:rgba(255,102,102,0.32); background:rgba(255,102,102,0.07); }
+.trust-item .open-hint { display:block; margin-top:0.32rem; color:var(--accent); font-size:0.7rem; font-weight:700; }
+.trust-actions { align-items:center; }
+.trust-actions .secondary-note { color:rgba(255,255,255,0.55); font-size:0.76rem; padding:0.35rem 0; }
+
+.gateway-helper {
+  margin: -0.2rem 1rem 0.85rem;
+  padding: 0.72rem 0.82rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.035);
+  color: rgba(255,255,255,0.68);
+  font-size: 0.8rem;
+  line-height: 1.48;
+}
+.proof-icon { width:22px; height:22px; display:block; margin-bottom:0.42rem; border-radius:6px; object-fit:cover; }
+.proof-icon.round { border-radius:50%; }
+.no-chip { overflow:hidden; }
+.no-chip::before {
+  content:'';
+  position:absolute;
+  left:0.45rem; right:0.45rem; top:50%;
+  height:2px;
+  background:#ff4f4f;
+  transform:rotate(-8deg);
+  box-shadow:0 0 8px rgba(255,79,79,0.65);
+  pointer-events:none;
+}
+.no-chip > * { position:relative; z-index:1; }
+.no-chip::after { position:relative; z-index:2; }
+.media-block.no-official h3 { font-size:0.78rem; letter-spacing:0.08em; color:rgba(255,255,255,0.82); }
+.trust-photo figcaption { padding:0.55rem 0.72rem; font-size:0.82rem; line-height:1.28; }
+.photo-contact { display:block; margin-top:0.45rem; color:rgba(255,255,255,0.82); font-size:0.82rem; line-height:1.35; }
+.trust-proof-heading { margin-top:0.72rem; }
+@media (max-width: 980px) {
+  .info-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .info-grid { grid-template-columns:1fr; }
+  .logo-chip, .no-chip { width:100%; justify-content:flex-start; }
+  .zoom-modal { padding:0.5rem; }
+  .zoom-close { top:0.7rem; right:0.7rem; }
+}
+
+@media (max-width: 980px) {
+  .gateway-layout { grid-template-columns: 1fr; width: calc(100% - 1rem); }
+  .gateway-right { border-radius: 20px; }
+  .redirect-bar.top-redirect { width: calc(100% - 1rem); }
+}
+
 /* ── Mobile ── */
 @media (max-width: 520px) {
   .hero { padding: 2rem 1rem 1rem; }
   .hero h1 { font-size: 1.5rem; }
   .cards { padding: 0 1rem; }
+  .gateway-right .cards { padding: 0 0.75rem; }
   .card { flex-wrap: wrap; gap: 0.4rem; padding: 0.8rem; border-radius: 14px; }
   .card-rank { min-width: 26px; font-size: 1rem; }
   .card-status { min-width: auto; }
@@ -233,6 +404,8 @@ a.go-btn.disabled {
   .top-bar { padding: 1.2rem 1rem 0; }
   .section-label { padding: 0 1rem; }
   .redirect-bar { margin: 0.4rem 1rem 0; border-radius: 14px; }
+  .redirect-bar.top-redirect { margin: 0.2rem auto 0.7rem; }
+  .redirect-main { align-items:flex-start; }
   .retest-row { padding: 0.6rem 1rem 0; }
 }
 </style>
@@ -254,34 +427,102 @@ a.go-btn.disabled {
 <!-- Hero -->
 <div class="hero">
   <h1>Connecting you to <em>Rufus Wiena</em> on the permanent web</h1>
-  <p>Your gateway to a censorship-resistant website — permanently stored on Arweave, accessible through hundreds of gateways worldwide.</p>
+  <p>Connecting you automatically — or choose a gateway below.</p>
   <div class="hero-progress"><div class="hero-progress-fill" id="heroProgress"></div></div>
 </div>
 
-<!-- Primary Gateways -->
-<div class="section-label">
-  <span class="label-text">⭐ Recommended gateways</span>
-  <span class="label-line"></span>
-</div>
-<div class="cards" id="primaryCards"></div>
-
-<!-- Backup Gateways -->
-<div class="section-label" id="backupLabel" style="display:none">
-  <span class="label-text">More gateways</span>
-  <span class="label-line"></span>
-</div>
-<div class="cards" id="backupCards"></div>
-
-<!-- Redirect -->
-<div class="redirect-bar" id="redirectBar">
-  <span id="redirectText"></span>
-  <button onclick="cancelRedirect()">✕ Cancel</button>
+<!-- Top auto-connect timer -->
+<div class="redirect-bar top-redirect" id="redirectBar">
+  <div class="redirect-main">
+    <span id="redirectText"></span>
+    <button onclick="cancelRedirect()">Stop auto-connect</button>
+  </div>
   <div class="redir-prog"><div class="redir-prog-fill" id="redirProg"></div></div>
 </div>
 
-<!-- Rescan -->
-<div class="retest-row" id="retestRow" style="display:none">
-  <button class="retest-btn" onclick="startScan()">🔄 Rescan gateways</button>
+<div class="gateway-layout">
+  <div class="gateway-left">
+
+<!-- Trust Passport / Verification -->
+<button class="trust-toggle" id="trustToggle" type="button" onclick="toggleTrust()" aria-label="Show website verification info">i</button>
+<section class="trust-panel" id="trustPanel" aria-label="Website authenticity and verification">
+  <div class="trust-head">
+    <div>
+      <div class="trust-eyebrow">Important info</div>
+      <div class="trust-title">My official gateway / portal</div>
+      <div class="trust-subtitle">This page opens my <strong>real</strong> Arweave website through a working gateway. In the <strong>AI era</strong>, this <strong>passport</strong> helps you check what is <strong>real</strong>, what is <strong>fake</strong>, and how to reach the site if one route is blocked.</div>
+    </div>
+    <button class="trust-close" type="button" onclick="toggleTrust(true)" aria-label="Minimize verification panel">×</button>
+  </div>
+
+  <div class="trust-intro">
+    <div class="trust-copy">
+      <div class="media-verify">
+        <div class="media-block">
+          <h3>MY SOCIAL / MEDIA</h3>
+          <div class="logo-row">
+            <a class="logo-chip" href="https://iris.to/npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk" target="_blank" rel="noopener noreferrer"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237b3ff2'/%3E%3Cpath fill='white' d='M6.2 16.9V7.1h2.5l5.4 5.9V7.1h3.7v9.8h-2.5L9.9 11v5.9H6.2z'/%3E%3C/svg%3E" alt="Nostr logo"> Nostr</a>
+            <a class="logo-chip" href="https://odysee.com/@rufuswiena:4" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/odysee/FFFFFF" alt="Odysee logo"> Odysee</a>
+          </div>
+          
+        </div>
+
+        <div class="media-block no-official">
+          <h3>I DON'T HAVE ANY OTHER OFFICIAL ACCOUNTS</h3>
+          <div class="no-logo-row" aria-label="Unofficial platform warning">
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="Instagram logo"> Instagram</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/facebook/FFFFFF" alt="Facebook logo"> Facebook/Meta</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/x/FFFFFF" alt="X logo"> X/Twitter</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TikTok logo"> TikTok</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/whatsapp/FFFFFF" alt="WhatsApp logo"> WhatsApp</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="Apple logo"> Apple</span>
+            <span class="no-chip"><img src="https://cdn.simpleicons.org/google/FFFFFF" alt="Google logo"> Google</span>
+          </div>
+          <div class="signal-contact"><strong>Warning:</strong> if any account on these platforms claims to be me, treat it as fake / impersonation unless this passport links it.</div>
+        </div>
+      </div>
+    </div>
+    <figure class="trust-photo" aria-label="Rufus Wiena Arctic surfing identity image">
+      <button type="button" onclick="openTrustImageZoom()" aria-label="Open larger Arctic surfing image">
+        <img src="https://arweave.net/DyJK9ZH-dqpxXJqyvhPaI-iDVQX8EoQIbzfrTIVbrgE" alt="Rufus Wiena arctic surfing" loading="lazy">
+      </button>
+      <figcaption>Click to zoom. Same human, same permanent passport.<br><span class="photo-contact"><strong>Contact:</strong> Signal <strong>rufuswiena.88</strong> | <strong>rw@rufuswiena.com</strong></span></figcaption>
+    </figure>
+  </div>
+
+  <div class="trust-proof-heading">Verification / proof links</div>
+  <div class="trust-grid">
+    <a class="trust-item" href="https://rufuswiena.ar.io" target="_blank" rel="noopener noreferrer"><img class="proof-icon round" src="https://arweave.net/zH4XLuzaGMZcno424UUwdqU8qBlikApN30QdTtpdCiw" alt="Rufus Wiena logo"><b>Permanent website name</b><span>rufuswiena.ar.io</span><span class="open-hint">Open site</span></a>
+    <a class="trust-item" href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer"><img class="proof-icon round" src="https://arweave.net/zH4XLuzaGMZcno424UUwdqU8qBlikApN30QdTtpdCiw" alt="Rufus Wiena logo"><b>Normal web fallback</b><span>rufuswiena.com</span><span class="open-hint">Open fallback</span></a>
+    <a class="trust-item" href="https://arweave.net/owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA" target="_blank" rel="noopener noreferrer"><img class="proof-icon" src="https://arweave.net/favicon.ico" alt="Arweave logo"><b>Permanent Arweave record</b><code>owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA</code><span class="open-hint">Open record</span></a>
+    <a class="trust-item" href="https://iris.to/npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk" target="_blank" rel="noopener noreferrer"><img class="proof-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237b3ff2'/%3E%3Cpath fill='white' d='M6.2 16.9V7.1h2.5l5.4 5.9V7.1h3.7v9.8h-2.5L9.9 11v5.9H6.2z'/%3E%3C/svg%3E" alt="Nostr logo"><b>Nostr identity</b><code>npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk</code><span class="open-hint">Open Nostr</span></a>
+    <a class="trust-item" href="/identity.txt" target="_blank" rel="noopener noreferrer"><img class="proof-icon round" src="https://arweave.net/zH4XLuzaGMZcno424UUwdqU8qBlikApN30QdTtpdCiw" alt="Rufus Wiena logo"><b>Identity statement</b><span>Plain text public identity statement.</span><span class="open-hint">Open identity.txt</span></a>
+  </div>
+
+</section>
+
+  </div>
+  <aside class="gateway-right" aria-label="Gateway choices">
+    <!-- Primary Gateways -->
+    <div class="section-label">
+      <span class="label-text">⭐ Choose your gate / gateway</span>
+      <span class="label-line"></span>
+    </div>
+    <div class="gateway-helper">A censorship-resistant website — permanently stored on Arweave, accessible through hundreds of gateways worldwide.</div>
+    <div class="cards" id="primaryCards"></div>
+
+    <!-- Backup Gateways -->
+    <div class="section-label" id="backupLabel" style="display:none">
+      <span class="label-text">More gateways</span>
+      <span class="label-line"></span>
+    </div>
+    <div class="cards" id="backupCards"></div>
+
+    <!-- Rescan -->
+    <div class="retest-row" id="retestRow" style="display:none">
+      <button class="retest-btn" onclick="startScan()">🔄 Rescan gateways</button>
+    </div>
+  </aside>
 </div>
 
 <noscript>
@@ -290,6 +531,11 @@ a.go-btn.disabled {
     <a href="https://rufuswiena.ar.io" style="color:#FF6666">rufuswiena.ar.io</a> directly.
   </p>
 </noscript>
+
+<div class="zoom-modal" id="trustImageZoom" role="dialog" aria-modal="true" aria-label="Large Arctic surfing image" onclick="closeTrustImageZoom(event)">
+  <button class="zoom-close" type="button" onclick="closeTrustImageZoom(event)" aria-label="Close image zoom">×</button>
+  <img src="https://arweave.net/DyJK9ZH-dqpxXJqyvhPaI-iDVQX8EoQIbzfrTIVbrgE" alt="Rufus Wiena arctic surfing large view">
+</div>
 
 <!-- Footer -->
 <div class="footer">
@@ -373,7 +619,7 @@ a.go-btn.disabled {
    ================================================================= */
 var ARNS = 'rufuswiena';
 var TIMO = 7000;
-var RD_SEC = 4;
+var RD_SEC = 2.5;
 var C_KEY = 'rw-gw-v6';
 var C_TTL = 600000;
 var PRI_THRESHOLD = 500; /* ms — prefer primary under this speed */
@@ -629,20 +875,28 @@ function startRedirect(fqdn) {
   $heroProg.style.transition = 'width ' + RD_SEC + 's linear';
   $heroProg.style.width = '0%';
 
-  /* Hide old bar, show cancel in redirect bar (minimal) */
+  /* Show top auto-connect timer with stop button */
   $rBar.style.display = 'block';
-  $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong>…';
+  $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong> in ' + RD_SEC + 's. You can stop this and choose a gateway manually.';
+  $rProg.style.transition = 'none';
+  $rProg.style.width = '100%';
+  $rProg.offsetHeight;
+  $rProg.style.transition = 'width ' + RD_SEC + 's linear';
+  $rProg.style.width = '0%';
 
   rdTimer = setInterval(function() {
-    rdCount--;
+    rdCount -= 0.5;
+    if (rdCount > 0) $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong> in ' + Math.ceil(rdCount) + 's. You can stop this and choose a gateway manually.';
     if (rdCount <= 0) { clearInterval(rdTimer); rdTimer = null; window.location.href = url; }
-  }, 1000);
+  }, 500);
 }
 function cancelRedirect() {
   if (rdTimer) { clearInterval(rdTimer); rdTimer = null; }
   $heroProg.parentElement.classList.remove('active');
   $heroProg.style.transition = 'none';
   $heroProg.style.width = '0%';
+  $rProg.style.transition = 'none';
+  $rProg.style.width = '0%';
   $rBar.style.display = 'none';
 }
 
@@ -650,6 +904,53 @@ function cancelRedirect() {
    INIT
    ================================================================= */
 startScan();
+
+
+function openTrustImageZoom() {
+  var z = document.getElementById('trustImageZoom');
+  if (!z) return;
+  z.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTrustImageZoom(ev) {
+  if (ev && ev.type === 'click' && ev.target && ev.target.tagName === 'IMG') return;
+  var z = document.getElementById('trustImageZoom');
+  if (!z) return;
+  z.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(ev) {
+  if (ev.key === 'Escape') closeTrustImageZoom(ev);
+});
+
+/* =================================================================
+   TRUST PASSPORT TOGGLE + AI PROMPT
+   ================================================================= */
+function toggleTrust(forceClose) {
+  var panel = document.getElementById('trustPanel');
+  if (!panel) return;
+  var close = forceClose === true || !panel.classList.contains('collapsed');
+  if (close) {
+    panel.classList.add('collapsed');
+    try { localStorage.setItem('rw-trust-panel', 'closed'); } catch(e) {}
+  } else {
+    panel.classList.remove('collapsed');
+    try { localStorage.setItem('rw-trust-panel', 'open'); } catch(e) {}
+  }
+}
+function copyAiVerifyPrompt() {
+  var prompt = 'Please help me verify whether this appears to be the authentic Rufus Wiena website. Compare these public identifiers: canonical AR.IO name: rufuswiena.ar.io; direct Arweave index transaction ID: owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA; Nostr npub: npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk; Nostr public key: a244271b30af83cc416f86821104647d7e3ade6aceaf699712433ccd7ff5b69e; NIP-05 identity: rufuswiena@rufuswiena.com; Arweave wallet: FEjWIeu7RqHSe1OJai2E6l56VmQ36-r6wIdpFC0V0vI; Odysee: https://odysee.com/@rufuswiena:4; Signal username: rufuswiena.88. Explain whether the page I am viewing matches these identifiers. Do not trust screenshots, social accounts, or onion addresses unless they are linked from the website itself. Tor onion mirror status: planned, not official until listed in the Trust Passport and VERIFY.md.';
+  function done() {
+    var s = document.getElementById('trustStatus');
+    if (s) { s.style.display = 'block'; setTimeout(function(){ s.style.display = 'none'; }, 5500); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(prompt).then(done).catch(done);
+  else { window.prompt('Copy this AI verification prompt:', prompt); done(); }
+}
+(function(){
+  try { if (localStorage.getItem('rw-trust-panel') === 'closed') document.getElementById('trustPanel').classList.add('collapsed'); } catch(e) {}
+})();
+
 </script>
 
 </body>
