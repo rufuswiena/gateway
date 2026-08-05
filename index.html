@@ -497,6 +497,7 @@ a.go-btn.disabled {
     <a class="trust-item" href="https://arweave.net/owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA" target="_blank" rel="noopener noreferrer"><img class="proof-icon" src="https://arweave.net/favicon.ico" alt="Arweave logo"><b>Permanent Arweave record</b><code>owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA</code><span class="open-hint">Open record</span></a>
     <a class="trust-item" href="https://iris.to/npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk" target="_blank" rel="noopener noreferrer"><img class="proof-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237b3ff2'/%3E%3Cpath fill='white' d='M6.2 16.9V7.1h2.5l5.4 5.9V7.1h3.7v9.8h-2.5L9.9 11v5.9H6.2z'/%3E%3C/svg%3E" alt="Nostr logo"><b>Nostr identity</b><code>npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk</code><span class="open-hint">Open Nostr</span></a>
     <a class="trust-item" href="/identity.txt" target="_blank" rel="noopener noreferrer"><img class="proof-icon round" src="https://arweave.net/zH4XLuzaGMZcno424UUwdqU8qBlikApN30QdTtpdCiw" alt="Rufus Wiena logo"><b>Identity statement</b><span>Plain text public identity statement.</span><span class="open-hint">Open identity.txt</span></a>
+    <a class="trust-item" href="http://na6egduklwjtjc6g544obmpaobwe3b2c4cndg4e3tphp4m3jffuhhfad.onion" target="_blank" rel="noopener noreferrer"><img class="proof-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237b3ff2'/%3E%3Cpath fill='white' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-14a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z'/%3E%3C/svg%3E" alt="Tor onion logo"><b>Tor mirror</b><span>Censorship-resistant onion site</span><span class="open-hint">Open .onion</span></a>
   </div>
 
 </section>
@@ -541,7 +542,8 @@ a.go-btn.disabled {
 <div class="footer">
   Permanent website on <a href="https://arweave.org" target="_blank" rel="noopener noreferrer">Arweave</a> ·
   Gateways by <a href="https://ar.io" target="_blank" rel="noopener noreferrer">ar.io</a> ·
-  Fallback: <a href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer">rufuswiena.com</a>
+  Fallback: <a href="https://www.rufuswiena.com" target="_blank" rel="noopener noreferrer">rufuswiena.com</a> ·
+  Tor mirror: <a href="http://na6egduklwjtjc6g544obmpaobwe3b2c4cndg4e3tphp4m3jffuhhfad.onion" target="_blank" rel="noopener noreferrer">🧅 .onion</a>
 </div>
 
 </div><!-- /page -->
@@ -939,7 +941,7 @@ function toggleTrust(forceClose) {
   }
 }
 function copyAiVerifyPrompt() {
-  var prompt = 'Please help me verify whether this appears to be the authentic Rufus Wiena website. Compare these public identifiers: canonical AR.IO name: rufuswiena.ar.io; direct Arweave index transaction ID: owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA; Nostr npub: npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk; Nostr public key: a244271b30af83cc416f86821104647d7e3ade6aceaf699712433ccd7ff5b69e; NIP-05 identity: rufuswiena@rufuswiena.com; Arweave wallet: FEjWIeu7RqHSe1OJai2E6l56VmQ36-r6wIdpFC0V0vI; Odysee: https://odysee.com/@rufuswiena:4; Signal username: rufuswiena.88. Explain whether the page I am viewing matches these identifiers. Do not trust screenshots, social accounts, or onion addresses unless they are linked from the website itself. Tor onion mirror status: planned, not official until listed in the Trust Passport and VERIFY.md.';
+  var prompt = 'Please help me verify whether this appears to be the authentic Rufus Wiena website. Compare these public identifiers: canonical AR.IO name: rufuswiena.ar.io; direct Arweave index transaction ID: owrMWze0FRsgCsT1K5lvY6Zo0i-UfWwRHDjApeRM4kA; Nostr npub: npub15fzzwxes47pucst0s6ppzpry04lr4hn2e6hkn9cjgv7v6ll4k60q6elclk; Nostr public key: a244271b30af83cc416f86821104647d7e3ade6aceaf699712433ccd7ff5b69e; NIP-05 identity: rufuswiena@rufuswiena.com; Arweave wallet: FEjWIeu7RqHSe1OJai2E6l56VmQ36-r6wIdpFC0V0vI; Odysee: https://odysee.com/@rufuswiena:4; Signal username: rufuswiena.88. Explain whether the page I am viewing matches these identifiers. Do not trust screenshots, social accounts, or onion addresses unless they are linked from the website itself. Tor onion mirror: na6egduklwjtjc6g544obmpaobwe3b2c4cndg4e3tphp4m3jffuhhfad.onion.';
   function done() {
     var s = document.getElementById('trustStatus');
     if (s) { s.style.display = 'block'; setTimeout(function(){ s.style.display = 'none'; }, 5500); }
