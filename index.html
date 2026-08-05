@@ -81,17 +81,75 @@ body {
   color: var(--dim); font-size: 0.88rem; font-weight: 300;
   line-height: 1.7; max-width: 720px; margin: 0 auto;
 }
-.hero-progress {
-  height: 4px; max-width: 780px; margin: 1.2rem auto 0;
-  background: rgba(255,255,255,0.04); border-radius: 2px;
-  overflow: hidden; opacity: 0;
-  transition: opacity 0.3s;
+/* ── Cinema Countdown ── */
+.cinema-countdown {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin: 1.5rem auto 0;
+  max-width: 780px;
 }
-.hero-progress.active { opacity: 1; }
-.hero-progress-fill {
-  height: 100%; width: 100%;
-  background: linear-gradient(90deg, var(--accent), #ff9966);
-  border-radius: 2px;
+.cinema-countdown.active { display: flex; }
+.cinema-stage {
+  position: relative;
+  width: 180px; height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.cinema-number {
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.3);
+  filter: blur(8px);
+  text-shadow: 0 0 30px rgba(255,102,102,0.6), 0 0 60px rgba(255,102,102,0.3);
+}
+.cinema-number.show {
+  animation: cinemaPop 1s ease-out forwards;
+}
+@keyframes cinemaPop {
+  0%   { opacity: 0; transform: scale(0.3); filter: blur(8px); }
+  20%  { opacity: 1; transform: scale(1.15); filter: blur(0); }
+  60%  { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: scale(0.8); filter: blur(4px); }
+}
+.cinema-ring {
+  position: absolute;
+  width: 100px; height: 100px;
+  border: 2px solid rgba(255,102,102,0.15);
+  border-radius: 50%;
+  animation: cinemaRing 1s ease-out forwards;
+}
+@keyframes cinemaRing {
+  0%   { width: 20px; height: 20px; opacity: 0.8; border-color: rgba(255,102,102,0.6); }
+  100% { width: 160px; height: 160px; opacity: 0; border-color: rgba(255,102,102,0); }
+}
+.cinema-label {
+  font-size: 0.78rem;
+  color: var(--dim);
+  margin-top: 0.6rem;
+  font-weight: 300;
+  text-align: center;
+}
+.cinema-label strong { color: var(--text); font-weight: 500; }
+.cinema-stop {
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--dim);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 0.35rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.cinema-stop:hover {
+  color: var(--accent);
+  border-color: rgba(255,102,102,0.3);
+  background: rgba(255,102,102,0.08);
 }
 
 /* ── Section labels ── */
@@ -428,7 +486,14 @@ a.go-btn.disabled {
 <div class="hero">
   <h1>Connecting you to <em>Rufus Wiena</em> on the permanent web</h1>
   <p>Connecting you automatically — or choose a gateway below.</p>
-  <div class="hero-progress"><div class="hero-progress-fill" id="heroProgress"></div></div>
+  <div class="cinema-countdown" id="cinemaCountdown">
+    <div class="cinema-stage">
+      <div class="cinema-ring" id="cinemaRing"></div>
+      <div class="cinema-number" id="cinemaNumber">5</div>
+    </div>
+    <div class="cinema-label" id="cinemaLabel">Auto-connecting to <strong>—</strong></div>
+    <button class="cinema-stop" onclick="cancelRedirect()">Stop auto-connect</button>
+  </div>
 </div>
 
 <!-- Top auto-connect timer -->
@@ -621,7 +686,7 @@ a.go-btn.disabled {
    ================================================================= */
 var ARNS = 'rufuswiena';
 var TIMO = 7000;
-var RD_SEC = 2.5;
+var RD_SEC = 5;
 var C_KEY = 'rw-gw-v6';
 var C_TTL = 600000;
 var PRI_THRESHOLD = 500; /* ms — prefer primary under this speed */
@@ -863,42 +928,54 @@ var $rBar = document.getElementById('redirectBar');
 var $rTxt = document.getElementById('redirectText');
 var $rProg = document.getElementById('redirProg');
 
-var $heroProg = document.getElementById('heroProgress');
+var $cinema = document.getElementById('cinemaCountdown');
+var $cinemaNum = document.getElementById('cinemaNumber');
+var $cinemaRing = document.getElementById('cinemaRing');
+var $cinemaLabel = document.getElementById('cinemaLabel');
 
 function startRedirect(fqdn) {
   var url = 'https://' + ARNS + '.' + fqdn;
   rdCount = RD_SEC;
 
-  /* Show hero progress bar */
-  $heroProg.parentElement.classList.add('active');
-  $heroProg.style.transition = 'none';
-  $heroProg.style.width = '100%';
-  $heroProg.offsetHeight;
-  $heroProg.style.transition = 'width ' + RD_SEC + 's linear';
-  $heroProg.style.width = '0%';
+  /* Show cinema countdown */
+  $cinema.classList.add('active');
+  $cinemaLabel.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong>';
 
-  /* Show top auto-connect timer with stop button */
-  $rBar.style.display = 'block';
-  $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong> in ' + RD_SEC + 's. You can stop this and choose a gateway manually.';
-  $rProg.style.transition = 'none';
-  $rProg.style.width = '100%';
-  $rProg.offsetHeight;
-  $rProg.style.transition = 'width ' + RD_SEC + 's linear';
-  $rProg.style.width = '0%';
+  /* Hide old redirect bar */
+  $rBar.style.display = 'none';
+
+  /* Cinema countdown animation: 5,4,3,2,1 */
+  var countdownNum = Math.ceil(RD_SEC);
+  function showNumber(n) {
+    $cinemaNum.classList.remove('show');
+    $cinemaRing.style.animation = 'none';
+    $cinemaRing.offsetHeight;
+    $cinemaNum.textContent = n;
+    $cinemaRing.style.animation = '';
+    $cinemaNum.classList.add('show');
+  }
+  showNumber(countdownNum);
 
   rdTimer = setInterval(function() {
-    rdCount -= 0.5;
-    if (rdCount > 0) $rTxt.innerHTML = 'Auto-connecting to <strong>' + esc(fqdn) + '</strong> in ' + Math.ceil(rdCount) + 's. You can stop this and choose a gateway manually.';
-    if (rdCount <= 0) { clearInterval(rdTimer); rdTimer = null; window.location.href = url; }
-  }, 500);
+    rdCount -= 1;
+    countdownNum = Math.ceil(rdCount);
+    if (rdCount > 0) {
+      showNumber(countdownNum);
+    } else {
+      clearInterval(rdTimer);
+      rdTimer = null;
+      $cinemaNum.textContent = '→';
+      $cinemaNum.classList.remove('show');
+      $cinemaNum.offsetHeight;
+      $cinemaNum.classList.add('show');
+      setTimeout(function() { window.location.href = url; }, 300);
+    }
+  }, 1000);
 }
 function cancelRedirect() {
   if (rdTimer) { clearInterval(rdTimer); rdTimer = null; }
-  $heroProg.parentElement.classList.remove('active');
-  $heroProg.style.transition = 'none';
-  $heroProg.style.width = '0%';
-  $rProg.style.transition = 'none';
-  $rProg.style.width = '0%';
+  $cinema.classList.remove('active');
+  $cinemaNum.classList.remove('show');
   $rBar.style.display = 'none';
 }
 
